@@ -1,12 +1,6 @@
 // Solo corre el modelo ViT — sin background removal (usa DOM y no funciona en workers)
-// @ts-ignore – optional peer dep
-import { pipeline, env } from "@xenova/transformers";
 import { createClient } from "@supabase/supabase-js";
 
-env.allowLocalModels = false;
-env.useBrowserCache = true;
-
-// Cliente autenticado — usa Authorization header directamente (más confiable en workers)
 function getSupabase(accessToken: string) {
   return createClient(
     import.meta.env.VITE_SUPABASE_URL as string,
@@ -15,11 +9,14 @@ function getSupabase(accessToken: string) {
   );
 }
 
-type Pipeline = Awaited<ReturnType<typeof pipeline>>;
-let _pipe: Pipeline | null = null;
+let _pipe: unknown = null;
 
 async function getPipeline() {
   if (!_pipe) {
+    // @ts-ignore – optional peer dep loaded dynamically
+    const { pipeline, env } = await import("@xenova/transformers");
+    env.allowLocalModels = false;
+    env.useBrowserCache = true;
     _pipe = await pipeline("image-feature-extraction", "Xenova/vit-base-patch16-224-in21k");
   }
   return _pipe;
