@@ -169,12 +169,17 @@ export async function createPet(input: CreatePetInput): Promise<Pet> {
 
 let _worker: Worker | null = null;
 
-function getEmbeddingWorker(): Worker {
+function getEmbeddingWorker(): Worker | null {
   if (!_worker) {
-    _worker = new Worker(
-      new URL("../workers/embeddingWorker.ts", import.meta.url),
-      { type: "module" },
-    );
+    try {
+      _worker = new Worker(
+        new URL("../workers/embeddingWorker.ts", import.meta.url),
+        { type: "module" },
+      );
+    } catch {
+      console.warn("[embedding] Worker no disponible en este entorno");
+      return null;
+    }
   }
   return _worker;
 }
@@ -269,7 +274,7 @@ export function generateAndSaveEmbedding(petId: string, imageUrl: string): void 
     } catch (err) {
       console.warn("[embedding] preprocesamiento falló, usando imagen original:", err);
     }
-    getEmbeddingWorker().postMessage({ petId, imageUrl: dataUrl, accessToken: session.access_token });
+    getEmbeddingWorker()?.postMessage({ petId, imageUrl: dataUrl, accessToken: session.access_token });
   };
 
   if (typeof requestIdleCallback !== "undefined") {
