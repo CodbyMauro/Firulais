@@ -13,4 +13,9 @@ export default defineConfig({
       "Cross-Origin-Embedder-Policy": "credentialless",
     },
   },
+  build: {
+    rollupOptions: {
+      external: ["@xenova/transformers", "@imgly/background-removal"],
+    },
+  },
 })
