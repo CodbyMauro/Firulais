@@ -1,4 +1,6 @@
+// @ts-ignore – optional peer dep
 import { pipeline, env } from "@xenova/transformers";
+// @ts-ignore – optional peer dep
 import { removeBackground } from "@imgly/background-removal";
 
 env.allowLocalModels = false;

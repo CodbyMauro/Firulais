@@ -1,4 +1,5 @@
 // Solo corre el modelo ViT — sin background removal (usa DOM y no funciona en workers)
+// @ts-ignore – optional peer dep
 import { pipeline, env } from "@xenova/transformers";
 import { createClient } from "@supabase/supabase-js";
 
