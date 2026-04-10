@@ -87,10 +87,6 @@ export default function ConversationScreen() {
     ? user?.id === conversation.initiator_id ? conversation.reporter_name : conversation.initiator_name
     : "Chat";
 
-  const initials = otherName
-    ? otherName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
-    : "?";
-
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
 

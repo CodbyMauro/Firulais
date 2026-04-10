@@ -131,9 +131,6 @@ export default function ChatScreen() {
   const otherName = (conv: Conversation) =>
     user?.id === conv.initiator_id ? conv.reporter_name : conv.initiator_name;
 
-  const initials = (name: string) =>
-    name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-
   const formatTime = (iso: string) => {
     const date = new Date(iso);
     const diffDays = Math.floor((Date.now() - date.getTime()) / 86400000);

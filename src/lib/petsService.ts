@@ -259,6 +259,7 @@ export function generateAndSaveEmbedding(petId: string, imageUrl: string): void 
 
     let dataUrl = imageUrl;
     try {
+      // @ts-ignore – optional peer dep not installed in all envs
       const { removeBackground } = await import("@imgly/background-removal");
       console.log("[embedding] removiendo fondo...");
       const blob = await removeBackground(imageUrl, { model: "isnet_quint8", output: { format: "image/png" } });
@@ -284,6 +285,7 @@ export type SimilarPet = {
   status: string;
   image_url: string | null;
   similarity: number;
+  ai_score?: number;
 };
 
 export type SimilarPetsResponse = {
