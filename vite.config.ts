@@ -18,4 +18,9 @@ export default defineConfig({
       external: ["@xenova/transformers", "@imgly/background-removal"],
     },
   },
+  worker: {
+    rollupOptions: {
+      external: ["@xenova/transformers", "@imgly/background-removal"],
+    },
+  },
 })
