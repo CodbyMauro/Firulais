@@ -1,123 +1,135 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.27.0";
-import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2";
-
-env.allowLocalModels = false;
-env.useBrowserCache  = false;
 
 const SUPABASE_URL  = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_KEY  = Deno.env.get("SERVICE_ROLE_KEY")!;
 const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
+const OPENAI_KEY    = Deno.env.get("OPENAI_API_KEY")!;
 
 const supabase  = createClient(SUPABASE_URL, SUPABASE_KEY);
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_KEY });
 
-// MiniLM para text embeddings (384 dims, muy liviano)
-// deno-lint-ignore no-explicit-any
-let _embedder: any = null;
-async function getEmbedder() {
-  if (!_embedder) {
-    _embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-  }
-  return _embedder;
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...CORS, "Content-Type": "application/json" },
+  });
 }
 
-/** Claude Haiku Vision analiza la imagen y devuelve descripción del animal */
+async function fetchAsBase64(url: string) {
+  const res    = await fetch(url);
+  const buffer = await res.arrayBuffer();
+  const bytes  = new Uint8Array(buffer);
+  // Loop en lugar de spread para evitar stack overflow en imágenes grandes
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = btoa(binary);
+  const mime   = (res.headers.get("content-type") || "image/jpeg").split(";")[0];
+  return { data: base64, media_type: mime };
+}
+
 async function describeAnimal(imageUrl: string): Promise<string> {
-  // Descargar imagen y convertir a base64
-  const response = await fetch(imageUrl);
-  const buffer   = await response.arrayBuffer();
-  const base64   = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-  const mimeType = response.headers.get("content-type") || "image/jpeg";
+  const img = await fetchAsBase64(imageUrl);
 
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 300,
+    max_tokens: 200,
     messages: [{
       role: "user",
       content: [
         {
           type: "image",
-          source: { type: "base64", media_type: mimeType as "image/jpeg" | "image/png" | "image/webp", data: base64 },
+          source: {
+            type: "base64",
+            media_type: img.media_type as "image/jpeg" | "image/png" | "image/webp",
+            data: img.data,
+          },
         },
         {
           type: "text",
-          text: `Describí este animal de forma precisa para ayudar a encontrarlo si está perdido.
-Incluí: especie, raza (si podés identificarla), color del pelaje, marcas distintivas, tamaño aproximado, y cualquier característica única visible.
-Respondé solo con la descripción, sin introducciones ni comentarios. Máximo 3 oraciones.`,
+          text: `Describí este animal para identificarlo si está perdido.
+Incluí: especie (perro/gato/otro), raza o características de raza, color principal del pelaje, colores secundarios o patrones (manchas, bicolor, tricolor, atigrado), marcas distintivas (parches de color, manchas en cara/pecho/patas), tamaño aproximado (pequeño/mediano/grande), y forma de orejas y cola si son visibles.
+Solo la descripción, sin introducción ni comentarios. Máximo 3 oraciones.`,
         },
       ],
     }],
   });
 
-  const text = message.content[0];
-  return text.type === "text" ? text.text : "";
+  const block = message.content[0];
+  return block.type === "text" ? block.text : "";
 }
 
-/** Convierte texto a embedding de 384 dims normalizado */
-async function textToEmbedding(text: string): Promise<number[]> {
-  const embedder = await getEmbedder();
-  // deno-lint-ignore no-explicit-any
-  const output   = await (embedder as any)(text, { pooling: "mean", normalize: true });
-  return Array.from(output.data as Float32Array);
+async function getTextEmbedding(text: string): Promise<number[]> {
+  const res = await fetch("https://api.openai.com/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${OPENAI_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ model: "text-embedding-3-small", input: text }),
+  });
+
+  if (!res.ok) throw new Error(`OpenAI error ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  return data.data[0].embedding as number[];
 }
 
 serve(async (req: Request) => {
-  if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+  if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: CORS });
 
   let petId: string;
-  let imageUrl: string;
 
   try {
-    const body  = await req.json();
-    const record = body.record ?? body;
-    petId        = record.id;
-    imageUrl     = record.image_url;
-
-    if (!imageUrl) {
-      return new Response(JSON.stringify({ skipped: true, reason: "sin imagen" }), { status: 200 });
-    }
+    const body = await req.json();
+    petId = body.petId ?? body.record?.id;
+    if (!petId) throw new Error("petId requerido");
   } catch (err) {
-    return new Response(JSON.stringify({ error: `parse error: ${err}` }), { status: 400 });
+    return json({ error: String(err) }, 400);
   }
 
   try {
-    console.log(`[embedding] 🐾 analizando mascota ${petId}`);
+    // Siempre leer la imagen desde la DB — no confiar en el cliente
+    const { data: pet, error: fetchErr } = await supabase
+      .from("pets")
+      .select("image_url")
+      .eq("id", petId)
+      .single();
 
-    // 1. Claude Haiku describe visualmente al animal
-    console.log(`[embedding] 👁 enviando imagen a Claude Haiku...`);
-    const description = await describeAnimal(imageUrl);
-    console.log(`[embedding] 📝 descripción: ${description}`);
+    if (fetchErr) throw fetchErr;
+    if (!pet?.image_url) return json({ skipped: true, reason: "sin imagen", petId });
 
-    // 2. Convertir descripción a vector semántico
-    console.log(`[embedding] 🔢 generando embedding de texto...`);
-    const embedding = await textToEmbedding(description);
+    console.log(`[embedding] procesando pet ${petId}`);
 
-    // 3. Guardar embedding + descripción en la DB
-    const { error } = await supabase
+    const description = await describeAnimal(pet.image_url);
+    console.log(`[embedding] descripción: ${description}`);
+
+    const embedding = await getTextEmbedding(description);
+    console.log(`[embedding] ${embedding.length} dims generados`);
+
+    const { error: updateErr } = await supabase
       .from("pets")
       .update({
-        embedding:   `[${embedding.join(",")}]`,
-        ai_description: description, // guardamos la descripción para mostrarla en la UI
+        embedding: `[${embedding.join(",")}]`,
+        ai_description: description,
       })
       .eq("id", petId);
 
-    if (error) throw error;
+    if (updateErr) throw updateErr;
 
-    console.log(`[embedding] ✅ listo para pet ${petId}`);
-    return new Response(JSON.stringify({ success: true, petId, description }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.log(`[embedding] guardado para pet ${petId}`);
+    return json({ success: true, petId });
 
   } catch (err) {
-    console.error(`[embedding] ❌ error:`, err);
-    return new Response(JSON.stringify({ error: String(err), petId }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error(`[embedding] error:`, err);
+    return json({ error: String(err), petId }, 500);
   }
 });

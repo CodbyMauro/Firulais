@@ -1,10 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { MenuProvider } from "./context/MenuContext";
-import { useAuth } from "./context/AuthContext";
-import { preloadModels } from "./lib/embeddingService";
 import HamburgerMenu from "./components/HamburgerMenu";
 import SideNav from "./components/SideNav";
 import SplashScreen from "./pages/SplashScreen";
@@ -39,18 +36,9 @@ import AdminStoreScreen from "./pages/admin/AdminStoreScreen";
 import AdminHappyEndingsScreen from "./pages/admin/AdminHappyEndingsScreen";
 import AdminHelpCentersScreen from "./pages/admin/AdminHelpCentersScreen";
 
-function ModelPreloader() {
-  const { user } = useAuth();
-  useEffect(() => {
-    if (user) preloadModels(); // precarga en background cuando el usuario se loguea
-  }, [user]);
-  return null;
-}
-
 function AppShell() {
   return (
     <div className="lg:flex lg:h-screen lg:overflow-hidden">
-      <ModelPreloader />
       <SideNav />
       <HamburgerMenu />
       <main className="flex-1 min-w-0 lg:overflow-auto">

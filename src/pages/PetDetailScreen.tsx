@@ -259,11 +259,43 @@ export default function PetDetailScreen() {
               </div>
             )}
 
-            {/* Sin resultados */}
-            {!similarLoading && similarData && similarPets.length === 0 && (
-              <p className="text-xs text-slate-400 dark:text-slate-500">
-                No encontramos coincidencias por ahora.
-              </p>
+            {/* Embedding pendiente: se está procesando la mascota */}
+            {!similarLoading && similarData?.embedding_pending && (
+              <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3">
+                <svg className="animate-spin h-4 w-4 text-[#2b9dee] shrink-0" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-blue-700 dark:text-blue-400">Analizando tu mascota con IA...</p>
+                  <p className="text-[10px] text-blue-600 dark:text-blue-500">Tocá "Reintentar" en unos segundos.</p>
+                </div>
+                <button
+                  onClick={handleRefreshSimilar}
+                  disabled={refreshing}
+                  className="shrink-0 px-3 py-1.5 bg-[#2b9dee] text-white text-xs font-bold rounded-lg disabled:opacity-50"
+                >
+                  {refreshing ? "..." : "Reintentar"}
+                </button>
+              </div>
+            )}
+
+            {/* Sin resultados (embedding listo pero sin coincidencias) */}
+            {!similarLoading && similarData && !similarData.embedding_pending && similarPets.length === 0 && (
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  No encontramos coincidencias por ahora.
+                </p>
+                {!similarData.fromCache && (
+                  <button
+                    onClick={handleRefreshSimilar}
+                    disabled={refreshing}
+                    className="text-xs text-[#2b9dee] font-semibold disabled:opacity-50"
+                  >
+                    {refreshing ? "Buscando..." : "Reintentar"}
+                  </button>
+                )}
+              </div>
             )}
 
             {/* Cards */}

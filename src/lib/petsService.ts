@@ -159,129 +159,29 @@ export async function createPet(input: CreatePetInput): Promise<Pet> {
   if (error) throw error;
   const pet = data as Pet;
 
-  // Generar embedding en background — no bloquea el flujo principal
+  // Disparar generación de embedding en background — no bloquea el flujo principal
   if (pet.image_url) {
-    generateAndSaveEmbedding(pet.id, pet.image_url);
+    triggerEmbedding(pet.id);
   }
 
   return pet;
 }
 
-let _worker: Worker | null = null;
-
-function getEmbeddingWorker(): Worker | null {
-  if (!_worker) {
-    try {
-      _worker = new Worker(
-        new URL("../workers/embeddingWorker.ts", import.meta.url),
-        { type: "module" },
-      );
-    } catch {
-      console.warn("[embedding] Worker no disponible en este entorno");
-      return null;
-    }
-  }
-  return _worker;
-}
-
-/**
- * Después de remover el fondo, recorta al bounding box real del animal.
- * Elimina las áreas transparentes que agregan ruido al embedding.
- */
-function cropToBoundingBox(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const blobUrl = URL.createObjectURL(blob);
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0);
-      URL.revokeObjectURL(blobUrl);
-
-      const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      let minX = width, maxX = 0, minY = height, maxY = 0;
-
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          if (data[(y * width + x) * 4 + 3] > 10) {
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-          }
-        }
-      }
-
-      if (minX >= maxX || minY >= maxY) {
-        // Fallback: sin animal detectado, usar blob original
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-        return;
-      }
-
-      // Padding de 5% del tamaño para no cortar bordes
-      const pad = Math.round(Math.min(width, height) * 0.05);
-      const x = Math.max(0, minX - pad);
-      const y = Math.max(0, minY - pad);
-      const w = Math.min(width, maxX + pad) - x;
-      const h = Math.min(height, maxY + pad) - y;
-
-      const cropped = document.createElement("canvas");
-      cropped.width = w;
-      cropped.height = h;
-      cropped.getContext("2d")!.drawImage(canvas, x, y, w, h, 0, 0, w, h);
-
-      cropped.toBlob((croppedBlob) => {
-        if (!croppedBlob) { reject(new Error("crop failed")); return; }
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(croppedBlob);
-      }, "image/png");
-    };
-    img.onerror = reject;
-    img.src = blobUrl;
+function triggerEmbedding(petId: string): void {
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session) return;
+    fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pet-embedding`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ petId }),
+      },
+    ).catch(() => {}); // fire and forget
   });
-}
-
-/**
- * Genera el embedding en background:
- * 1. Background removal → solo el animal
- * 2. Crop al bounding box → elimina transparencias
- * 3. ViT inference en Web Worker (no bloquea la UI)
- */
-export function generateAndSaveEmbedding(petId: string, imageUrl: string): void {
-  const run = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      console.warn("[embedding] sin sesión activa, cancelando embedding");
-      return;
-    }
-
-    let dataUrl = imageUrl;
-    try {
-      // @ts-ignore – optional peer dep not installed in all envs
-      const { removeBackground } = await import("@imgly/background-removal");
-      console.log("[embedding] removiendo fondo...");
-      const blob = await removeBackground(imageUrl, { model: "isnet_quint8", output: { format: "image/png" } });
-      console.log("[embedding] recortando al animal...");
-      dataUrl = await cropToBoundingBox(blob);
-      console.log("[embedding] listo, enviando al worker...");
-    } catch (err) {
-      console.warn("[embedding] preprocesamiento falló, usando imagen original:", err);
-    }
-    getEmbeddingWorker()?.postMessage({ petId, imageUrl: dataUrl, accessToken: session.access_token });
-  };
-
-  if (typeof requestIdleCallback !== "undefined") {
-    requestIdleCallback(() => run(), { timeout: 2000 });
-  } else {
-    setTimeout(run, 500);
-  }
 }
 
 export type SimilarPet = {
@@ -304,6 +204,8 @@ export type SimilarPetsResponse = {
   premium_required?: boolean;
   /** Solo presente cuando error === "searches_exhausted" */
   searches_exhausted?: boolean;
+  /** La mascota aún no tiene embedding — se está generando en background */
+  embedding_pending?: boolean;
 };
 
 async function callFindSimilar(petId: string, forceRefresh: boolean): Promise<SimilarPetsResponse> {
