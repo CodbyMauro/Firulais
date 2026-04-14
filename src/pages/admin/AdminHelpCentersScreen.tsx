@@ -218,7 +218,7 @@ export default function AdminHelpCentersScreen() {
                       key={theme}
                       attribution="&copy; OpenStreetMap &copy; CARTO"
                       url={theme === "dark"
-                        ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png"
+                        ? "https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png"
                         : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                       }
                     />

@@ -85,8 +85,8 @@ const BA: [number, number] = [-34.6037, -58.3816];
 
 export default function MapScreen() {
   const navigate = useNavigate();
-  const { pets } = usePets();
   const { theme } = useTheme();
+  const { pets } = usePets();
   const [markers, setMarkers] = useState<PetMarker[]>([]);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [flyTo, setFlyTo] = useState<{ coords: [number, number]; zoom: number; trigger: number } | null>(null);
@@ -144,7 +144,7 @@ export default function MapScreen() {
           key={theme}
           attribution='&copy; OpenStreetMap contributors &copy; CARTO'
           url={theme === "dark"
-            ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png"
+            ? "https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png"
             : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           }
         />
@@ -169,24 +169,52 @@ export default function MapScreen() {
             icon={pet.status === "lost" ? lostIcon : foundIcon}
             eventHandlers={{ click: () => setFlyTo({ coords: [lat, lng], zoom: 16, trigger: Date.now() }) }}
           >
-            <Popup>
-              <div style={{ fontFamily: "Plus Jakarta Sans, sans-serif", minWidth: 180 }}>
-                {pet.image_url && (
-                  <img src={pet.image_url} alt={pet.name ?? ""} style={{ width: "100%", height: 100, objectFit: "cover", borderRadius: 8, marginBottom: 8 }} />
-                )}
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                  <span style={{ background: pet.status === "lost" ? "#dc2626" : "#059669", color: "white", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, textTransform: "uppercase" }}>
+            <Popup minWidth={210} maxWidth={210} className="firulais-popup">
+              <div style={{ fontFamily: "Plus Jakarta Sans, sans-serif", width: 210, overflow: "hidden", borderRadius: 16, margin: -1 }}>
+                {/* Image */}
+                <div style={{ position: "relative", width: "100%", height: 110, background: "#f1f5f9", overflow: "hidden" }}>
+                  {pet.image_url
+                    ? <img src={pet.image_url} alt={pet.name ?? ""} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 40, color: "#cbd5e1" }}>pets</span>
+                      </div>
+                  }
+                  {/* Status badge */}
+                  <span style={{
+                    position: "absolute", top: 8, left: 8,
+                    background: pet.status === "lost" ? "#dc2626" : "#059669",
+                    color: "white", fontSize: 9, fontWeight: 800,
+                    padding: "3px 8px", borderRadius: 99, textTransform: "uppercase",
+                    letterSpacing: "0.05em", boxShadow: "0 1px 4px rgba(0,0,0,.25)",
+                  }}>
                     {pet.status === "lost" ? "Perdido" : "Encontrado"}
                   </span>
                 </div>
-                <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>{pet.name ?? "Sin nombre"}</p>
-                <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0 8px" }}>{pet.location}</p>
-                <button
-                  onClick={() => navigate(`/pet/${pet.id}`)}
-                  style={{ background: "#2b9dee", color: "white", border: "none", borderRadius: 8, padding: "6px 12px", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%" }}
-                >
-                  Ver detalle
-                </button>
+
+                {/* Body */}
+                <div style={{ padding: "10px 12px 12px", background: theme === "dark" ? "#1e293b" : "#ffffff" }}>
+                  <p style={{ fontWeight: 800, fontSize: 14, margin: "0 0 2px", color: theme === "dark" ? "#f1f5f9" : "#0f172a", lineHeight: 1.3 }}>
+                    {pet.name ?? "Sin nombre"}
+                  </p>
+                  {pet.location && (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 4, marginBottom: 10 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 12, color: "#2b9dee", flexShrink: 0, marginTop: 1 }}>location_on</span>
+                      <span style={{ fontSize: 11, color: theme === "dark" ? "#94a3b8" : "#64748b", lineHeight: 1.4 }}>{pet.location}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => navigate(`/pet/${pet.id}`)}
+                    style={{
+                      width: "100%", padding: "8px 0",
+                      background: "linear-gradient(135deg, #2b9dee, #1a7bbf)",
+                      color: "white", border: "none", borderRadius: 10,
+                      fontWeight: 800, fontSize: 12, cursor: "pointer",
+                      letterSpacing: "0.01em", boxShadow: "0 2px 8px rgba(43,157,238,.35)",
+                    }}
+                  >
+                    Ver detalle
+                  </button>
+                </div>
               </div>
             </Popup>
           </Marker>

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { useTheme } from "../context/ThemeContext";
 import L from "leaflet";
 import BottomNav from "../components/BottomNav";
 import { fetchHelpCenters, type HelpCenter } from "../lib/adminService";
+import { useTheme } from "../context/ThemeContext";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -203,7 +203,7 @@ export default function HelpCentersScreen() {
                 key={theme}
                 attribution="&copy; OpenStreetMap &copy; CARTO"
                 url={theme === "dark"
-                  ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png"
+                  ? "https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png"
                   : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 }
               />

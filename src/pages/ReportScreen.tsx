@@ -76,12 +76,11 @@ function MapPickerModal({
   onConfirm: (address: string, lat: number, lng: number) => void;
   onClose: () => void;
 }) {
+  const { theme } = useTheme();
   const [pin, setPin] = useState<[number, number] | null>(initial);
   const [address, setAddress] = useState("");
   const [geocoding, setGeocoding] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
-  const { theme } = useTheme();
-
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
       (p) => setUserPos([p.coords.latitude, p.coords.longitude]),
@@ -108,7 +107,7 @@ function MapPickerModal({
             key={theme}
             attribution='&copy; OpenStreetMap contributors &copy; CARTO'
             url={theme === "dark"
-              ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png"
+              ? "https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png"
               : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
             }
           />
