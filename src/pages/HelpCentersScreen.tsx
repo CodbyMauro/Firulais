@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useTheme } from "../context/ThemeContext";
 import L from "leaflet";
 import BottomNav from "../components/BottomNav";
 import { fetchHelpCenters, type HelpCenter } from "../lib/adminService";
@@ -24,6 +25,7 @@ const BA: [number, number] = [-34.6037, -58.3816];
 
 export default function HelpCentersScreen() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [centers, setCenters] = useState<HelpCenter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -198,8 +200,12 @@ export default function HelpCentersScreen() {
               zoomControl={true}
             >
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                key={theme}
                 attribution="&copy; OpenStreetMap &copy; CARTO"
+                url={theme === "dark"
+                  ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png"
+                  : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                }
               />
               {withCoords.map((center) => (
                 <Marker key={center.id} position={[center.lat!, center.lng!]} icon={pinIcon}>

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { useTheme } from "../context/ThemeContext";
 import L from "leaflet";
 import { useAuth } from "../context/AuthContext";
 import { createPet, uploadPetImage } from "../lib/petsService";
@@ -79,6 +80,7 @@ function MapPickerModal({
   const [address, setAddress] = useState("");
   const [geocoding, setGeocoding] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
@@ -103,8 +105,12 @@ function MapPickerModal({
       <div className="flex-1 relative">
         <MapContainer center={center} zoom={14} style={{ height: "100%", width: "100%" }} zoomControl={false}>
           <TileLayer
+            key={theme}
             attribution='&copy; OpenStreetMap contributors &copy; CARTO'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            url={theme === "dark"
+              ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png"
+              : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            }
           />
           <PickerHandler onPick={handlePick} />
           {pin && <Marker position={pin} icon={pickerIcon} />}

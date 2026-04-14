@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { useTheme } from "../../context/ThemeContext";
 import L from "leaflet";
 import {
   fetchHelpCenters, createHelpCenter, updateHelpCenter, deleteHelpCenter,
@@ -48,6 +49,7 @@ const EMPTY: HelpCenterInput = {
 };
 
 export default function AdminHelpCentersScreen() {
+  const { theme } = useTheme();
   const [items, setItems] = useState<HelpCenter[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -213,8 +215,12 @@ export default function AdminHelpCentersScreen() {
                     zoomControl={true}
                   >
                     <TileLayer
-                      url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                      key={theme}
                       attribution="&copy; OpenStreetMap &copy; CARTO"
+                      url={theme === "dark"
+                        ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png"
+                        : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                      }
                     />
                     <MapPicker onPick={handleMapClick} />
                     {form.lat && form.lng && (

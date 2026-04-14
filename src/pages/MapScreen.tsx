@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-le
 import L from "leaflet";
 import { usePets } from "../hooks/usePets";
 import type { Pet } from "../lib/petsService";
+import { useTheme } from "../context/ThemeContext";
 
 // Fix default marker icons for Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -85,6 +86,7 @@ const BA: [number, number] = [-34.6037, -58.3816];
 export default function MapScreen() {
   const navigate = useNavigate();
   const { pets } = usePets();
+  const { theme } = useTheme();
   const [markers, setMarkers] = useState<PetMarker[]>([]);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [flyTo, setFlyTo] = useState<{ coords: [number, number]; zoom: number; trigger: number } | null>(null);
@@ -139,8 +141,12 @@ export default function MapScreen() {
         attributionControl={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          key={theme}
+          attribution='&copy; OpenStreetMap contributors &copy; CARTO'
+          url={theme === "dark"
+            ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png"
+            : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          }
         />
 
         {flyTo && <FlyTo coords={flyTo.coords} zoom={flyTo.zoom} trigger={flyTo.trigger} />}
