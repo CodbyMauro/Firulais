@@ -168,20 +168,7 @@ export async function createPet(input: CreatePetInput): Promise<Pet> {
 }
 
 function triggerEmbedding(petId: string): void {
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (!session) return;
-    fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pet-embedding`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ petId }),
-      },
-    ).catch(() => {}); // fire and forget
-  });
+  supabase.functions.invoke("generate-pet-embedding", { body: { petId } }).catch(() => {});
 }
 
 export type SimilarPet = {
@@ -209,31 +196,27 @@ export type SimilarPetsResponse = {
 };
 
 async function callFindSimilar(petId: string, forceRefresh: boolean): Promise<SimilarPetsResponse> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data, error } = await supabase.functions.invoke("find-similar-pets", {
+    body: { petId, forceRefresh },
+  });
 
-  const res = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/find-similar-pets`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({ petId, forceRefresh }),
-    },
-  );
-
-  const data = await res.json();
-  if (res.status === 402) {
-    const exhausted = data.error === "searches_exhausted";
-    return {
-      ...data,
-      results: data.results ?? [],
-      premium_required: !exhausted,
-      searches_exhausted: exhausted,
-    };
+  if (error) {
+    // FunctionsHttpError trae el status y body de la edge function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const status = (error as any).status ?? (error as any).context?.status;
+    if (status === 402) {
+      const body = await (error as any).context?.json?.() ?? {};
+      const exhausted = body.error === "searches_exhausted";
+      return {
+        ...body,
+        results: body.results ?? [],
+        premium_required: !exhausted,
+        searches_exhausted: exhausted,
+      };
+    }
+    throw new Error(error.message ?? "Error al buscar coincidencias");
   }
-  if (!res.ok) throw new Error(data.error ?? `Error ${res.status}`);
+
   return data as SimilarPetsResponse;
 }
 
