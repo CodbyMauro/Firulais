@@ -40,7 +40,7 @@ async function describeAnimal(imageUrl: string): Promise<string> {
   const img = await fetchAsBase64(imageUrl);
 
   const message = await anthropic.messages.create({
-    model: "claude-3-haiku-20240307",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 200,
     messages: [{
       role: "user",
