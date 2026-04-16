@@ -25,8 +25,7 @@ const pickerIcon = new L.DivIcon({
 // ── Data ──────────────────────────────────────────────────────────────────────
 const COLORS = [
   "Sin color definido", "Negro", "Blanco", "Marrón / Café", "Dorado / Amarillo",
-  "Gris / Plateado", "Naranja / Rojizo", "Crema / Beige",
-  "Negro y blanco", "Marrón y blanco", "Tricolor", "Atigrado", "Moteado",
+  "Gris", "Naranja / Rojizo", "Multicolor / Mezclado",
 ];
 
 const BREEDS = [
