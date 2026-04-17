@@ -5,7 +5,14 @@
       "Bash(gh repo:*)",
       "WebSearch",
       "Bash(npx supabase:*)",
-      "Bash(supabase --version)"
+      "Bash(supabase --version)",
+      "Bash(npx tsc *)",
+      "WebFetch(domain:github.com)",
+      "Bash(curl -s https://raw.githubusercontent.com/thedotmack/claude-mem/main/README.md)",
+      "Bash(gh api *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(python3 \"c:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais/.claude/skills/ui-ux-pro-max/scripts/search.py\" \"mobile app pet social community filters search\" --design-system -p \"Firulais\")",
+      "WebFetch(domain:stitch.withgoogle.com)"
     ]
   }
 }

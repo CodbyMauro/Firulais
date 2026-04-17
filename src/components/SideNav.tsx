@@ -67,7 +67,8 @@ export default function SideNav() {
 
       {/* Bottom section */}
       <div className="px-3 py-3 border-t border-slate-100 dark:border-slate-700 flex flex-col gap-1">
-        <button
+        {/* dark mode toggle temporarily disabled */}
+        {/* <button
           onClick={toggleTheme}
           className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors w-full text-left"
         >
@@ -77,7 +78,7 @@ export default function SideNav() {
           <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">
             {theme === "dark" ? "Modo oscuro" : "Modo claro"}
           </span>
-        </button>
+        </button> */}
 
         <button
           onClick={() => navigate("/settings")}
