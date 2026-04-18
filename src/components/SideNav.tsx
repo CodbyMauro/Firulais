@@ -15,7 +15,7 @@ export default function SideNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  useTheme();
 
   if (AUTH_PATHS.includes(location.pathname)) return null;
 
