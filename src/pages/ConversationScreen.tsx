@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   fetchMessages,
@@ -13,11 +13,13 @@ import {
 import { fetchProfile, type Profile } from "../lib/profileService";
 import UserAvatar from "../components/UserAvatar";
 import { supabase } from "../lib/supabase";
+import { chatOpenedFromMessagesList } from "../lib/chatNavigation";
 
 
 export default function ConversationScreen() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -102,7 +104,11 @@ export default function ConversationScreen() {
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10">
         <button
-          onClick={() => navigate("/chat")}
+          type="button"
+          onClick={() => {
+            if (chatOpenedFromMessagesList(location.state)) navigate(-1);
+            else navigate("/chat", { replace: true });
+          }}
           className="flex size-9 items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0"
         >
           <span className="material-symbols-outlined text-[22px]">arrow_back</span>

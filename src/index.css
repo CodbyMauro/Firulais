@@ -16,6 +16,9 @@ body {
   margin: 0;
   font-family: var(--font-family-sans);
   background: #f5f5f5;
+  /* Plus Jakarta Sans: el par fi (p. ej. Firulais) a veces queda muy junto; sin ligaduras comunes se lee más claro */
+  font-variant-ligatures: no-common-ligatures;
+  font-kerning: normal;
 }
 
 .dark body {

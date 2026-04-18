@@ -46,8 +46,8 @@ export default function HomeScreen() {
   };
 
   return (
-    <div className="relative flex h-auto min-h-screen w-full max-w-[430px] lg:max-w-none mx-auto flex-col bg-white dark:bg-slate-800 font-display text-slate-900 dark:text-white shadow-2xl lg:shadow-none dark:shadow-slate-900/50 overflow-x-hidden">
-      <div className="flex items-center bg-white dark:bg-slate-800 p-4 pb-2 justify-between sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+    <div className="relative flex min-h-[100dvh] w-full max-w-[430px] lg:max-w-none mx-auto flex-col bg-white dark:bg-slate-800 font-display text-slate-900 dark:text-white shadow-2xl lg:shadow-none dark:shadow-slate-900/50 overflow-x-hidden">
+      <div className="flex shrink-0 items-center bg-white dark:bg-slate-800 p-4 pb-2 justify-between sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
         <button onClick={openMenu} className="lg:hidden flex size-12 shrink-0 items-center justify-start">
           <span className="material-symbols-outlined text-2xl">menu</span>
         </button>
@@ -62,29 +62,31 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      <div className="px-4 py-3 bg-white dark:bg-slate-800">
-        <div className="flex w-full flex-1 items-stretch rounded-xl h-12">
-          <div className="text-slate-400 flex border-none bg-slate-100 dark:bg-slate-700 items-center justify-center pl-4 rounded-l-xl">
+      <div className="shrink-0 px-4 py-3 bg-white dark:bg-slate-800">
+        <div className="flex w-full items-stretch h-12 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 overflow-hidden">
+          <div className="text-slate-400 flex shrink-0 items-center justify-center pl-3 pr-1">
             <span className="material-symbols-outlined">search</span>
           </div>
           <input
-            className="flex w-full min-w-0 flex-1 resize-none overflow-hidden bg-slate-100 dark:bg-slate-700 h-full text-slate-900 dark:text-white focus:outline-none border-none placeholder:text-slate-500 dark:placeholder:text-slate-400 px-2 text-base font-normal leading-normal"
+            className="flex min-w-0 flex-1 bg-transparent h-full text-slate-900 dark:text-white focus:outline-none focus:ring-0 border-0 placeholder:text-slate-500 dark:placeholder:text-slate-400 pl-1 pr-3 text-base font-normal leading-normal"
             placeholder="Buscar por raza, color o ubicación"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          {search && (
+          {search ? (
             <button
+              type="button"
               onClick={() => setSearch("")}
-              className="flex items-center justify-center pr-3 bg-slate-100 dark:bg-slate-700 rounded-r-xl text-slate-400"
+              className="flex shrink-0 items-center justify-center px-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              aria-label="Limpiar búsqueda"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
-      <div className="flex w-full overflow-x-auto px-4 py-3 bg-white dark:bg-slate-800 [&::-webkit-scrollbar]:hidden">
+      <div className="flex w-full shrink-0 overflow-x-auto px-4 py-3 bg-white dark:bg-slate-800 [&::-webkit-scrollbar]:hidden">
         <div className="flex min-h-min flex-row items-start justify-start gap-6">
           {categories.map((cat) => (
             <button
@@ -101,22 +103,22 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      <div className="flex-1 bg-[#f6f7f8] dark:bg-slate-900 pb-24 lg:pb-8">
-        <div className="flex items-center justify-between px-4 pb-3 pt-5">
-          <h2 className="text-[22px] font-bold leading-tight tracking-[-0.015em]">Reportes Recientes</h2>
-          <button onClick={() => navigate("/all-reports")} className="text-[#2b9dee] text-sm font-semibold">Ver Todos</button>
+      <div className="flex flex-1 flex-col min-h-0 bg-[#f6f7f8] dark:bg-slate-900 pb-24 lg:pb-8">
+        <div className="flex shrink-0 items-center justify-between px-4 pb-3 pt-5">
+          <h2 className="text-[22px] font-bold leading-tight tracking-[-0.015em]">Reportes recientes</h2>
+          <button onClick={() => navigate("/all-reports")} className="text-[#2b9dee] text-sm font-semibold">Ver todos</button>
         </div>
 
+        {isLoading ? (
+          <div className="flex flex-1 min-h-[12rem] items-center justify-center px-4">
+            <svg className="animate-spin h-8 w-8 text-[#2b9dee]" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+          </div>
+        ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-4 lg:px-6">
-          {isLoading && (
-            <div className="col-span-2 flex justify-center py-10">
-              <svg className="animate-spin h-8 w-8 text-[#2b9dee]" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-              </svg>
-            </div>
-          )}
-          {!isLoading && filteredPets.length === 0 && (
+          {filteredPets.length === 0 && (
             <div className="col-span-2 flex flex-col items-center py-12 text-slate-400 dark:text-slate-500 gap-3">
               <span className="material-symbols-outlined text-[48px]">pets</span>
               <p className="text-sm font-medium">No hay reportes aún</p>
@@ -160,6 +162,7 @@ export default function HomeScreen() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       <button

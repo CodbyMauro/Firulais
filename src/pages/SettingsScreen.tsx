@@ -18,8 +18,7 @@ export default function SettingsScreen() {
       </div>
 
       <div className="flex flex-col gap-3 p-4">
-        {/* Apariencia - dark mode toggle temporarily disabled */}
-        {/* <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 px-1">Apariencia</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 px-1">Apariencia</p>
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-4">
             <div className="flex items-center gap-3">
@@ -36,6 +35,7 @@ export default function SettingsScreen() {
               </div>
             </div>
             <button
+              type="button"
               onClick={toggleTheme}
               className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
                 theme === "dark" ? "bg-[#2b9dee]" : "bg-slate-200 dark:bg-slate-600"
@@ -48,7 +48,7 @@ export default function SettingsScreen() {
               />
             </button>
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   );

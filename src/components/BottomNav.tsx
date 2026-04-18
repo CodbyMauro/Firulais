@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { fetchConversations, fetchUnreadCounts } from "../lib/chatService";
+import { chatOpenedFromMessagesList } from "../lib/chatNavigation";
 
 const navItems = [
   { path: "/home", icon: "home", label: "Inicio" },
@@ -34,7 +35,19 @@ export default function BottomNav() {
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                if (item.path === "/chat" && location.pathname.startsWith("/chat/")) {
+                  if (chatOpenedFromMessagesList(location.state)) navigate(-1);
+                  else navigate("/chat", { replace: true });
+                  return;
+                }
+                if (item.path === "/chat" && location.pathname === "/home") {
+                  navigate("/chat", { replace: true });
+                  return;
+                }
+                const fromNested = location.pathname.startsWith(`${item.path}/`);
+                navigate(item.path, fromNested ? { replace: true } : undefined);
+              }}
               className={`flex flex-1 flex-col items-center justify-center gap-1 ${isActive ? "text-[#2b9dee]" : "text-slate-500 dark:text-slate-400"}`}
             >
               <div className="relative flex h-8 items-center justify-center">

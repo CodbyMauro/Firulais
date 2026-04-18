@@ -62,7 +62,7 @@ export default function FiltersScreen() {
     if (dateFrom)         params.set("dateFrom", dateFrom);
     if (dateTo)           params.set("dateTo",   dateTo);
     if (distance !== 15)  params.set("distance", String(distance));
-    navigate(`/reports?${params.toString()}`);
+    navigate(`/all-reports?${params.toString()}`, { replace: true });
   };
 
   const toggleColor = (label: string) =>

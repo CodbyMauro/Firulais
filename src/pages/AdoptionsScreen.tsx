@@ -2,17 +2,25 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import { fetchAdoptions, type Adoption } from "../lib/adminService";
+import { MOCK_ADOPTIONS } from "../data/mockAdoptions";
+
+/** Pasar a `false` para cargar desde Supabase (`adoptions`). */
+const USE_MOCK_ADOPTIONS = true;
 
 export default function AdoptionsScreen() {
   const navigate = useNavigate();
-  const [pets, setPets] = useState<Adoption[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [pets, setPets] = useState<Adoption[]>(() => (USE_MOCK_ADOPTIONS ? MOCK_ADOPTIONS : []));
+  const [isLoading, setIsLoading] = useState(!USE_MOCK_ADOPTIONS);
 
   useEffect(() => {
+    if (USE_MOCK_ADOPTIONS) return;
+
     fetchAdoptions()
       .then((data) => setPets(data.filter((p) => p.is_active)))
       .finally(() => setIsLoading(false));
   }, []);
+
+  const showCenteredPlaceholder = isLoading || pets.length === 0;
 
   return (
     <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-24 lg:pb-8">
@@ -24,9 +32,13 @@ export default function AdoptionsScreen() {
         <h2 className="text-lg font-bold flex-1 text-center pr-10">Adopciones</h2>
       </div>
 
-      <div className="flex flex-col gap-4 p-4">
+      <div
+        className={`flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 ${
+          showCenteredPlaceholder ? "justify-center" : ""
+        }`}
+      >
         {isLoading && (
-          <div className="flex justify-center py-16">
+          <div className="flex justify-center">
             <svg className="animate-spin h-8 w-8 text-[#2b9dee]" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -35,7 +47,7 @@ export default function AdoptionsScreen() {
         )}
 
         {!isLoading && pets.length === 0 && (
-          <div className="flex flex-col items-center py-16 text-slate-400 dark:text-slate-500 gap-3">
+          <div className="flex flex-col items-center gap-3 px-4 text-center text-slate-400 dark:text-slate-500">
             <span className="material-symbols-outlined text-[52px]">favorite</span>
             <p className="text-sm font-medium">No hay mascotas en adopción por ahora</p>
           </div>

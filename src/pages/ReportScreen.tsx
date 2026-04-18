@@ -256,7 +256,7 @@ export default function ReportScreen() {
           <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center">
             <span className="material-symbols-outlined text-[24px]">arrow_back_ios</span>
           </button>
-          <h2 className="text-lg font-bold flex-1 text-center pr-10">Reportar Mascota</h2>
+          <h2 className="text-lg font-bold flex-1 text-center pr-10">Reportar mascota</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="px-4 py-5 flex flex-col gap-5">
@@ -266,11 +266,11 @@ export default function ReportScreen() {
             <div className="grid grid-cols-2">
               <button type="button" onClick={() => setType("lost")}
                 className={`py-4 text-sm font-bold transition-colors ${type === "lost" ? "bg-red-600 text-white" : "text-slate-500 dark:text-slate-400"}`}>
-                Mascota Perdida
+                Mascota perdida
               </button>
               <button type="button" onClick={() => { setType("found"); setName(""); setAge(""); }}
                 className={`py-4 text-sm font-bold transition-colors ${type === "found" ? "bg-emerald-600 text-white" : "text-slate-500 dark:text-slate-400"}`}>
-                Mascota Encontrada
+                Mascota encontrada
               </button>
             </div>
           </div>
@@ -424,7 +424,7 @@ export default function ReportScreen() {
                 </svg>
                 Publicando...
               </>
-            ) : "Publicar Reporte"}
+            ) : "Publicar reporte"}
           </button>
         </form>
       </div>

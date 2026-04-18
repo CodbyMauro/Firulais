@@ -2,23 +2,33 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import { fetchServices, type Service } from "../lib/adminService";
+import { MOCK_SERVICES } from "../data/mockServices";
 
 type Tab = "Paseadores" | "Guarderías" | "Adiestradores";
 const TABS: Tab[] = ["Paseadores", "Guarderías", "Adiestradores"];
 
+/** Pasar a `false` para cargar desde Supabase (`services`). */
+const USE_MOCK_SERVICES = true;
+
 export default function ServicesScreen() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>("Paseadores");
-  const [allServices, setAllServices] = useState<Service[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [allServices, setAllServices] = useState<Service[]>(() =>
+    USE_MOCK_SERVICES ? MOCK_SERVICES : [],
+  );
+  const [isLoading, setIsLoading] = useState(!USE_MOCK_SERVICES);
 
   useEffect(() => {
+    if (USE_MOCK_SERVICES) return;
+
     fetchServices()
       .then((data) => setAllServices(data.filter((s) => s.is_active)))
       .finally(() => setIsLoading(false));
   }, []);
 
   const filtered = allServices.filter((s) => s.category === activeTab);
+
+  const showCenteredPlaceholder = isLoading || filtered.length === 0;
 
   return (
     <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-24 lg:pb-8">
@@ -27,12 +37,12 @@ export default function ServicesScreen() {
         <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center">
           <span className="material-symbols-outlined text-[24px]">arrow_back_ios</span>
         </button>
-        <h2 className="text-lg font-bold flex-1 text-center pr-10">Servicios y Cuidados</h2>
+        <h2 className="min-w-0 flex-1 pr-10 text-center text-lg font-bold">Servicios y cuidados</h2>
       </div>
 
       {/* Tabs */}
       <div className="sticky top-[57px] z-10 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
-        <div className="flex px-4 gap-6">
+        <div className="flex w-full justify-center px-4 gap-8 sm:gap-10">
           {TABS.map((tab) => (
             <button
               key={tab}
@@ -49,9 +59,13 @@ export default function ServicesScreen() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 p-4">
+      <div
+        className={`flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 ${
+          showCenteredPlaceholder ? "justify-center" : ""
+        }`}
+      >
         {isLoading && (
-          <div className="flex justify-center py-16">
+          <div className="flex justify-center">
             <svg className="animate-spin h-8 w-8 text-[#2b9dee]" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -60,7 +74,7 @@ export default function ServicesScreen() {
         )}
 
         {!isLoading && filtered.length === 0 && (
-          <div className="flex flex-col items-center py-16 text-slate-400 dark:text-slate-500 gap-3">
+          <div className="flex flex-col items-center text-center text-slate-400 dark:text-slate-500 gap-3 px-4">
             <span className="material-symbols-outlined text-[52px]">directions_walk</span>
             <p className="text-sm font-medium">No hay {activeTab.toLowerCase()} disponibles por ahora</p>
           </div>
@@ -80,8 +94,8 @@ export default function ServicesScreen() {
                     </div>
                 }
                 {pro.verified && (
-                  <div className="absolute -bottom-1 -right-1 bg-[#2b9dee] text-white p-0.5 rounded-full border-2 border-white dark:border-slate-800">
-                    <span className="material-symbols-outlined text-[14px] block">verified</span>
+                  <div className="absolute -bottom-1 -right-1 flex size-[22px] items-center justify-center rounded-full border-2 border-slate-200 bg-[#2b9dee] text-white shadow-sm dark:border-slate-500 dark:shadow-md dark:shadow-black/30">
+                    <span className="material-symbols-outlined block text-[14px]">verified</span>
                   </div>
                 )}
               </div>

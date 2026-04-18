@@ -160,7 +160,7 @@ export default function PetDetailScreen() {
         <div className="grid grid-cols-3 gap-3">
           {[
             { label: "Raza", value: pet.breed },
-            { label: "Edad", value: pet.age },
+            { label: "Edad", value: (pet.age ?? "").trim() || "-" },
             { label: "Color", value: pet.color },
           ].map((info) => (
             <div key={info.label} className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-center border border-slate-100 dark:border-slate-700">
@@ -172,7 +172,9 @@ export default function PetDetailScreen() {
 
         <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Descripción</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{pet.description}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            {(pet.description ?? "").trim() || "Sin descripción"}
+          </p>
         </div>
 
         <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">

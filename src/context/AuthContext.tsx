@@ -156,6 +156,10 @@ export function useAuth() {
 function mapError(e: unknown): string {
   if (!(e instanceof Error)) return "Error inesperado";
   const msg = e.message.toLowerCase();
+  if (msg.includes("failed to fetch") || msg.includes("networkerror"))
+    return "No se pudo conectar con el servidor (¿Supabase local con `supabase start`, o URL/clave en .env?)";
+  if (msg.includes("invalid api key"))
+    return "Clave de API inválida: revisá VITE_SUPABASE_ANON_KEY en .env.local (Supabase → Settings → API).";
   if (msg.includes("invalid login credentials"))   return "Correo o contraseña incorrectos";
   if (msg.includes("email not confirmed"))          return "Confirmá tu correo antes de iniciar sesión";
   if (msg.includes("user already registered"))      return "Ya existe una cuenta con ese correo";

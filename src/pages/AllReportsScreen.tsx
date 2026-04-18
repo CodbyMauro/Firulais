@@ -128,13 +128,13 @@ export default function AllReportsScreen() {
   const removeParam = (key: string) => {
     const next = new URLSearchParams(searchParams);
     next.delete(key);
-    setSearchParams(next);
+    setSearchParams(next, { replace: true });
   };
 
   const setStatusParam = (val: string) => {
     const next = new URLSearchParams(searchParams);
     if (val) next.set("status", val); else next.delete("status");
-    setSearchParams(next);
+    setSearchParams(next, { replace: true });
   };
 
   // Chips activos de filtros externos
@@ -234,7 +234,8 @@ export default function AllReportsScreen() {
               />
             ))}
             <button
-              onClick={() => setSearchParams(new URLSearchParams())}
+              type="button"
+              onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}
               className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 whitespace-nowrap cursor-pointer px-1"
             >
               Limpiar todo

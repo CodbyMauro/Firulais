@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
+import { chatOpenedFromMessagesList } from "../lib/chatNavigation";
 
 const navItems = [
   { path: "/home",    icon: "home",         label: "Inicio"    },
@@ -15,7 +15,6 @@ export default function SideNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
 
   if (AUTH_PATHS.includes(location.pathname)) return null;
 
@@ -44,7 +43,19 @@ export default function SideNav() {
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                if (item.path === "/chat" && location.pathname.startsWith("/chat/")) {
+                  if (chatOpenedFromMessagesList(location.state)) navigate(-1);
+                  else navigate("/chat", { replace: true });
+                  return;
+                }
+                if (item.path === "/chat" && location.pathname === "/home") {
+                  navigate("/chat", { replace: true });
+                  return;
+                }
+                const fromNested = location.pathname.startsWith(`${item.path}/`);
+                navigate(item.path, fromNested ? { replace: true } : undefined);
+              }}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left w-full ${
                 isActive
                   ? "bg-[#2b9dee]/10 dark:bg-[#2b9dee]/20 text-[#2b9dee]"
