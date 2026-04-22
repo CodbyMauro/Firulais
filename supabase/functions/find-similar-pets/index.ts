@@ -15,7 +15,6 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const CACHE_TTL_MS  = 24 * 60 * 60 * 1000;
 const TOP_K         = 5;
 const AI_THRESHOLD  = 40;
 const FREE_SEARCHES = 2;
@@ -209,17 +208,18 @@ serve(async (req: Request) => {
   const searchesRemaining = premium ? null : Math.max(0, FREE_SEARCHES - searchesUsed);
 
   // ── Cache ─────────────────────────────────────────────────────────────────
+  // El caché es indefinido: solo se invalida cuando el usuario pide forceRefresh.
   const { data: cache } = await supabase
     .from("pet_similarity_cache")
     .select("results, searched_at")
     .eq("pet_id", petId)
     .maybeSingle();
 
-  const cacheAge   = cache ? Date.now() - new Date(cache.searched_at).getTime() : Infinity;
-  const cacheValid = cacheAge < CACHE_TTL_MS;
-  const minutesAgo = Math.floor(cacheAge / 60_000);
+  const minutesAgo = cache
+    ? Math.floor((Date.now() - new Date(cache.searched_at).getTime()) / 60_000)
+    : null;
 
-  if (cacheValid && cache) {
+  if (cache) {
     if (!forceRefresh) {
       return json({ results: cache.results, fromCache: true, minutesAgo, searches_remaining: searchesRemaining });
     }
