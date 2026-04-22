@@ -1,6 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
 import { chatOpenedFromMessagesList } from "../lib/chatNavigation";
 
 const navItems = [
@@ -16,7 +15,6 @@ export default function SideNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
-  useTheme();
 
   if (AUTH_PATHS.includes(location.pathname)) return null;
 

@@ -3,7 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 
 export default function SettingsScreen() {
   const navigate = useNavigate();
-  useTheme();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-2xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white">
