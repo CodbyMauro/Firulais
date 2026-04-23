@@ -196,9 +196,23 @@ async function runClaudeBatch(
     ]),
     {
       type: "text",
-      text: `Analizá raza, color, marcas, forma de cara/orejas. ¿Cuál es la misma mascota?
-Respondé SOLO con JSON: [{"index":1,"score":85},{"index":2,"score":10},...]
-Score 0 = definitivamente NO, 100 = casi seguro que SÍ.`,
+      text: `Compará cada candidato contra la mascota de referencia. Para cada uno, evaluá 4 atributos:
+1. Raza o mix (pitbull, labrador, mestizo, siamés, etc.)
+2. Color dominante del pelaje
+3. Tamaño aproximado (pequeño/mediano/grande)
+4. Marcas distintivas (manchas, parches, cicatrices, patrones)
+
+RÚBRICA ESTRICTA — aplicá el score MÁS BAJO que corresponda:
+- Raza claramente distinta (ej: pitbull vs mestizo mediano) → score máximo 30
+- Color dominante distinto (ej: marrón vs gris, negro vs blanco) → score máximo 40
+- Tamaño muy distinto (ej: chihuahua vs labrador) → score máximo 35
+- Mismo tipo pero marcas/patrones distintos → score 50-70
+- Coinciden raza, color, tamaño Y marcas principales → score 80-95
+- Casi idénticos en todos los aspectos → score 96-100
+
+Ser ESTRICTO: cuando hay duda, bajá el score. Un 85+ significa "es muy probable la misma mascota".
+
+Respondé SOLO con JSON: [{"index":1,"score":85},{"index":2,"score":15},...]`,
     },
   ];
 
