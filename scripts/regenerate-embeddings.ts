@@ -36,7 +36,11 @@ async function regeneratePet(petId: string): Promise<RegenResult> {
       },
       body: JSON.stringify({ petId }),
     });
-    if (!res.ok) return { ok: false, petId, error: `HTTP ${res.status}: ${await res.text()}` };
+    const body = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, petId, error: `HTTP ${res.status}: ${JSON.stringify(body)}` };
+    // La edge function puede retornar 200 con {skipped:true,reason:"sin imagen"}
+    // si el pet perdió su image_url entre el SELECT y el fetch.
+    if (body?.skipped) return { ok: false, petId, error: `skipped: ${body.reason}` };
     return { ok: true, petId };
   } catch (err) {
     return { ok: false, petId, error: String(err) };
