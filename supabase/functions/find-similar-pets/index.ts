@@ -16,9 +16,10 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const TOP_K         = 5;
-const AI_THRESHOLD  = 40;
+const TOP_K         = 10;
+const AI_THRESHOLD  = 25;
 const FREE_SEARCHES = 2;
+const CLAUDE_BATCH_SIZE = 5;
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -176,14 +177,14 @@ export type SimilarPet = {
   distance_km: number | null;
 };
 
-async function runClaudeSearch(sourcePet: { image_url: string }, candidates: SimilarPet[]): Promise<SimilarPet[]> {
-  const withImage = candidates.filter(c => c.image_url);
+async function runClaudeBatch(
+  sourceImg: { data: string; media_type: string },
+  batch: SimilarPet[],
+): Promise<SimilarPet[]> {
+  const withImage = batch.filter(c => c.image_url);
   if (!withImage.length) return [];
 
-  const [sourceImg, ...candidateImgs] = await Promise.all([
-    fetchAsBase64(sourcePet.image_url),
-    ...withImage.map(c => fetchAsBase64(c.image_url!)),
-  ]);
+  const candidateImgs = await Promise.all(withImage.map(c => fetchAsBase64(c.image_url!)));
 
   // deno-lint-ignore no-explicit-any
   const content: any[] = [
@@ -203,7 +204,7 @@ Score 0 = definitivamente NO, 100 = casi seguro que SÍ.`,
 
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 200,
+    max_tokens: 400,
     messages: [{ role: "user", content }],
   });
 
@@ -211,8 +212,26 @@ Score 0 = definitivamente NO, 100 = casi seguro que SÍ.`,
   const match  = raw.match(/\[[\s\S]*\]/);
   const scores = match ? JSON.parse(match[0]) as { index: number; score: number }[] : [];
 
-  return withImage
-    .map((pet, i) => ({ ...pet, ai_score: scores.find(s => s.index === i + 1)?.score ?? 0 }))
+  return withImage.map((pet, i) => ({
+    ...pet,
+    ai_score: scores.find(s => s.index === i + 1)?.score ?? 0,
+  }));
+}
+
+async function runClaudeSearch(sourcePet: { image_url: string }, candidates: SimilarPet[]): Promise<SimilarPet[]> {
+  if (!candidates.length) return [];
+
+  const sourceImg = await fetchAsBase64(sourcePet.image_url);
+
+  const batches: SimilarPet[][] = [];
+  for (let i = 0; i < candidates.length; i += CLAUDE_BATCH_SIZE) {
+    batches.push(candidates.slice(i, i + CLAUDE_BATCH_SIZE));
+  }
+
+  const batchResults = await Promise.all(batches.map(b => runClaudeBatch(sourceImg, b)));
+
+  return batchResults
+    .flat()
     .filter(p => p.ai_score >= AI_THRESHOLD)
     .sort((a, b) => b.ai_score - a.ai_score);
 }
