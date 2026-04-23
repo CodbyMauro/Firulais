@@ -5,18 +5,27 @@
  * Uso:
  *   npx tsx scripts/regenerate-embeddings.ts
  *
- * Requiere en .env:
- *   SUPABASE_URL
- *   SUPABASE_SERVICE_ROLE_KEY
+ * Requiere en .env.local (o .env):
+ *   SUPABASE_URL  (o VITE_SUPABASE_URL si ya lo tenés para el frontend)
+ *   SUPABASE_SERVICE_ROLE_KEY  (desde Supabase Dashboard → Settings → API → service_role)
+ *
+ * IMPORTANTE: SUPABASE_SERVICE_ROLE_KEY bypassa RLS. Nunca lo expongas al browser
+ * ni lo commitees. Debe ir SIN el prefijo VITE_.
  */
 import { createClient } from "@supabase/supabase-js";
-import "dotenv/config";
+import { config } from "dotenv";
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
+// Carga .env.local primero (convención Vite), luego .env como fallback
+config({ path: ".env.local" });
+config();
+
+const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
 const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SERVICE_KEY) {
-  console.error("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env");
+  console.error("Faltan credenciales. Agregá a .env.local:");
+  if (!SUPABASE_URL) console.error("  SUPABASE_URL=https://<tu-project-ref>.supabase.co");
+  if (!SERVICE_KEY)  console.error("  SUPABASE_SERVICE_ROLE_KEY=<key desde Dashboard → Settings → API>");
   process.exit(1);
 }
 
