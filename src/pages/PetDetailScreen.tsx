@@ -330,7 +330,7 @@ export default function PetDetailScreen() {
                     <div className="p-2">
                       <p className="text-xs font-bold truncate">{s.name ?? "Sin nombre"}</p>
                       <p className="text-[10px] text-[#2b9dee] font-semibold mt-0.5">
-                        {getCombinedScore(s.similarity, s.ai_score)}% coincidencia
+                        {getCombinedScore(s.similarity, s.ai_score ?? 0)}% coincidencia
                       </p>
                     </div>
                   </button>
