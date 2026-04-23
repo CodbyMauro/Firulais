@@ -17,7 +17,7 @@ const CORS = {
 };
 
 const TOP_K         = 10;
-const AI_THRESHOLD  = 25;
+const AI_THRESHOLD  = 40;
 const FREE_SEARCHES = 2;
 const CLAUDE_BATCH_SIZE = 5;
 
