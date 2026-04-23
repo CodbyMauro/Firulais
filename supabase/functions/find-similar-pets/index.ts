@@ -208,9 +208,16 @@ Score 0 = definitivamente NO, 100 = casi seguro que SÍ.`,
     messages: [{ role: "user", content }],
   });
 
-  const raw    = message.content[0].type === "text" ? message.content[0].text : "[]";
-  const match  = raw.match(/\[[\s\S]*\]/);
-  const scores = match ? JSON.parse(match[0]) as { index: number; score: number }[] : [];
+  const raw   = message.content[0].type === "text" ? message.content[0].text : "[]";
+  const match = raw.match(/\[[\s\S]*\]/);
+  let scores: { index: number; score: number }[] = [];
+  if (match) {
+    try {
+      scores = JSON.parse(match[0]) as { index: number; score: number }[];
+    } catch (err) {
+      console.error("[runClaudeBatch] JSON.parse de scores falló:", err, "raw:", raw);
+    }
+  }
 
   return withImage.map((pet, i) => ({
     ...pet,
@@ -341,7 +348,19 @@ serve(async (req: Request) => {
   }
 
   // ── Scoring visual con Claude ────────────────────────────────────────────
-  const results = await runClaudeSearch(source, candidates);
+  let results: SimilarPet[];
+  try {
+    results = await runClaudeSearch(source, candidates);
+  } catch (err) {
+    console.error("[find-similar] runClaudeSearch falló:", err);
+    return json({
+      error: "scoring_failed",
+      message: "Error en el scoring visual. Intentá de nuevo.",
+      results: [],
+      fromCache: false,
+      searches_remaining: searchesRemaining,
+    }, 500);
+  }
 
   if (!premium) {
     await supabase.from("profiles").update({ ai_searches_used: searchesUsed + 1 }).eq("id", userId);
