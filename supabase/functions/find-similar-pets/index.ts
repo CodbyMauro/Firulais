@@ -33,6 +33,7 @@ async function fetchAsBase64(url: string) {
   const res    = await fetch(url);
   const buffer = await res.arrayBuffer();
   const bytes  = new Uint8Array(buffer);
+  // Loop en lugar de spread para evitar stack overflow en imágenes grandes
   let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
