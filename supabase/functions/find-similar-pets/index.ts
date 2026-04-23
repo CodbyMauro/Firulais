@@ -2,10 +2,11 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.27.0";
 
-const SUPABASE_URL  = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_KEY  = Deno.env.get("SERVICE_ROLE_KEY")!;
-const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
-const OPENAI_KEY    = Deno.env.get("OPENAI_API_KEY")!;
+const SUPABASE_URL      = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_KEY      = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const ANTHROPIC_KEY     = Deno.env.get("ANTHROPIC_API_KEY")!;
+const OPENAI_KEY        = Deno.env.get("OPENAI_API_KEY")!;
 
 const supabase  = createClient(SUPABASE_URL, SUPABASE_KEY);
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_KEY });
@@ -43,11 +44,12 @@ async function fetchAsBase64(url: string) {
 
 // ── Generación de embedding (inlineado — evita llamadas HTTP internas) ────────
 
-async function describeAnimal(imageUrl: string): Promise<string> {
+async function describeAnimal(imageUrl: string): Promise<{ species: string; description: string }> {
   const img = await fetchAsBase64(imageUrl);
+
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 200,
+    max_tokens: 400,
     messages: [{
       role: "user",
       content: [
@@ -61,15 +63,44 @@ async function describeAnimal(imageUrl: string): Promise<string> {
         },
         {
           type: "text",
-          text: `Describí este animal para identificarlo si está perdido.
-Incluí: especie (perro/gato/otro), raza o características de raza, color principal del pelaje, colores secundarios o patrones (manchas, bicolor, tricolor, atigrado), marcas distintivas (parches de color, manchas en cara/pecho/patas), tamaño aproximado (pequeño/mediano/grande), y forma de orejas y cola si son visibles.
-Solo la descripción, sin introducción ni comentarios. Máximo 3 oraciones.`,
+          text: `Analizá esta imagen de un animal y respondé SOLO con JSON válido con esta estructura exacta:
+{"species":"dog"|"cat"|"other","description":"..."}
+
+El campo "description" debe tener exactamente 5 oraciones en español, una por aspecto, en este orden:
+1. Especie + raza o mix + tamaño (pequeño/mediano/grande).
+2. Color principal + colores secundarios.
+3. Patrones de pelaje (manchas, atigrado, bicolor, parches específicos en cara/pecho/patas).
+4. Rasgos faciales (orejas caídas o paradas, hocico, ojos).
+5. Pelaje (corto/largo/rizado) + cola + marcas únicas.
+
+Respondé SOLO con el JSON, sin explicaciones, sin code fences, sin texto adicional.`,
         },
       ],
     }],
   });
+
   const block = message.content[0];
-  return block.type === "text" ? block.text : "";
+  const text = block.type === "text" ? block.text : "";
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error(`describeAnimal: no JSON en respuesta: ${text}`);
+
+  let parsed: { species: string; description: string };
+  try {
+    parsed = JSON.parse(match[0]) as { species: string; description: string };
+  } catch (_) {
+    throw new Error(`describeAnimal: JSON.parse falló. match=${match[0]}, raw=${text}`);
+  }
+
+  if (!parsed.description || typeof parsed.description !== "string") {
+    throw new Error(`describeAnimal: campo 'description' ausente en JSON: ${match[0]}`);
+  }
+
+  if (!["dog", "cat", "other"].includes(parsed.species)) {
+    console.warn(`[embedding] species inesperada "${parsed.species}", normalizando a "other"`);
+    parsed.species = "other";
+  }
+
+  return parsed;
 }
 
 async function getTextEmbedding(text: string): Promise<number[]> {
@@ -87,25 +118,29 @@ async function getTextEmbedding(text: string): Promise<number[]> {
 }
 
 async function generateAndSaveEmbedding(petId: string, imageUrl: string): Promise<void> {
-  const description = await describeAnimal(imageUrl);
-  const embedding   = await getTextEmbedding(description);
+  const { species, description } = await describeAnimal(imageUrl);
+  const embedding = await getTextEmbedding(description);
   const { error } = await supabase
     .from("pets")
     .update({
       embedding: `[${embedding.join(",")}]`,
       ai_description: description,
+      species,
     })
     .eq("id", petId);
   if (error) throw error;
-  console.log(`[embedding] generado para pet ${petId}: ${description}`);
+  console.log(`[embedding] generado para pet ${petId} (species=${species}): ${description}`);
 }
 
 // ── Búsqueda visual con Claude ────────────────────────────────────────────────
 
 async function getUserId(authHeader: string | null): Promise<string | null> {
   if (!authHeader) return null;
-  const token = authHeader.replace("Bearer ", "");
-  const { data } = await supabase.auth.getUser(token);
+  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data, error } = await userClient.auth.getUser();
+  if (error) console.error("[auth] error:", error);
   return data.user?.id ?? null;
 }
 
@@ -137,6 +172,7 @@ export type SimilarPet = {
   image_url: string | null;
   similarity: number;
   ai_score: number;
+  distance_km: number | null;
 };
 
 async function runClaudeSearch(sourcePet: { image_url: string }, candidates: SimilarPet[]): Promise<SimilarPet[]> {
