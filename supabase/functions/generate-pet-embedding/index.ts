@@ -75,8 +75,23 @@ Respondé SOLO con el JSON, sin explicaciones, sin code fences, sin texto adicio
   const text = block.type === "text" ? block.text : "";
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error(`describeAnimal: no JSON en respuesta: ${text}`);
-  const parsed = JSON.parse(match[0]) as { species: string; description: string };
-  if (!["dog", "cat", "other"].includes(parsed.species)) parsed.species = "other";
+
+  let parsed: { species: string; description: string };
+  try {
+    parsed = JSON.parse(match[0]) as { species: string; description: string };
+  } catch (_) {
+    throw new Error(`describeAnimal: JSON.parse falló. match=${match[0]}, raw=${text}`);
+  }
+
+  if (!parsed.description || typeof parsed.description !== "string") {
+    throw new Error(`describeAnimal: campo 'description' ausente en JSON: ${match[0]}`);
+  }
+
+  if (!["dog", "cat", "other"].includes(parsed.species)) {
+    console.warn(`[embedding] species inesperada "${parsed.species}", normalizando a "other"`);
+    parsed.species = "other";
+  }
+
   return parsed;
 }
 
