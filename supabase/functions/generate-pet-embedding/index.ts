@@ -36,12 +36,12 @@ async function fetchAsBase64(url: string) {
   return { data: base64, media_type: mime };
 }
 
-async function describeAnimal(imageUrl: string): Promise<string> {
+async function describeAnimal(imageUrl: string): Promise<{ species: string; description: string }> {
   const img = await fetchAsBase64(imageUrl);
 
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 200,
+    max_tokens: 400,
     messages: [{
       role: "user",
       content: [
@@ -55,16 +55,29 @@ async function describeAnimal(imageUrl: string): Promise<string> {
         },
         {
           type: "text",
-          text: `Describí este animal para identificarlo si está perdido.
-Incluí: especie (perro/gato/otro), raza o características de raza, color principal del pelaje, colores secundarios o patrones (manchas, bicolor, tricolor, atigrado), marcas distintivas (parches de color, manchas en cara/pecho/patas), tamaño aproximado (pequeño/mediano/grande), y forma de orejas y cola si son visibles.
-Solo la descripción, sin introducción ni comentarios. Máximo 3 oraciones.`,
+          text: `Analizá esta imagen de un animal y respondé SOLO con JSON válido con esta estructura exacta:
+{"species":"dog"|"cat"|"other","description":"..."}
+
+El campo "description" debe tener exactamente 5 oraciones en español, una por aspecto, en este orden:
+1. Especie + raza o mix + tamaño (pequeño/mediano/grande).
+2. Color principal + colores secundarios.
+3. Patrones de pelaje (manchas, atigrado, bicolor, parches específicos en cara/pecho/patas).
+4. Rasgos faciales (orejas caídas o paradas, hocico, ojos).
+5. Pelaje (corto/largo/rizado) + cola + marcas únicas.
+
+Respondé SOLO con el JSON, sin explicaciones, sin code fences, sin texto adicional.`,
         },
       ],
     }],
   });
 
   const block = message.content[0];
-  return block.type === "text" ? block.text : "";
+  const text = block.type === "text" ? block.text : "";
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error(`describeAnimal: no JSON en respuesta: ${text}`);
+  const parsed = JSON.parse(match[0]) as { species: string; description: string };
+  if (!["dog", "cat", "other"].includes(parsed.species)) parsed.species = "other";
+  return parsed;
 }
 
 async function getTextEmbedding(text: string): Promise<number[]> {
@@ -109,8 +122,8 @@ serve(async (req: Request) => {
 
     console.log(`[embedding] procesando pet ${petId}`);
 
-    const description = await describeAnimal(pet.image_url);
-    console.log(`[embedding] descripción: ${description}`);
+    const { species, description } = await describeAnimal(pet.image_url);
+    console.log(`[embedding] species=${species}, descripción: ${description}`);
 
     const embedding = await getTextEmbedding(description);
     console.log(`[embedding] ${embedding.length} dims generados`);
@@ -120,6 +133,7 @@ serve(async (req: Request) => {
       .update({
         embedding: `[${embedding.join(",")}]`,
         ai_description: description,
+        species,
       })
       .eq("id", petId);
 
