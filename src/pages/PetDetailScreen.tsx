@@ -101,6 +101,10 @@ export default function PetDetailScreen() {
     return `hace ${Math.floor(diff / 1440)}d`;
   };
 
+  const getCombinedScore = (similarity: number, aiScore: number): number => {
+    return Math.round((similarity * 100 * 0.3) + (aiScore * 0.7));
+  };
+
   if (isLoading) return (
     <div className="flex items-center justify-center min-h-screen max-w-[430px] lg:max-w-3xl mx-auto bg-white dark:bg-slate-800">
       <svg className="animate-spin h-8 w-8 text-[#2b9dee]" viewBox="0 0 24 24" fill="none">
@@ -229,6 +233,14 @@ export default function PetDetailScreen() {
               )}
             </div>
 
+            {/* Disclaimer IA */}
+            <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2.5">
+              <span className="material-symbols-outlined text-amber-500 text-[16px] mt-0.5 shrink-0">info</span>
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                La IA puede cometer errores. Los resultados son orientativos y no garantizan encontrar a tu mascota con precisión.
+              </p>
+            </div>
+
             {/* Metadata: última búsqueda + búsquedas restantes */}
             {similarData && !similarLoading && (
               <div className="flex items-center justify-between">
@@ -318,7 +330,7 @@ export default function PetDetailScreen() {
                     <div className="p-2">
                       <p className="text-xs font-bold truncate">{s.name ?? "Sin nombre"}</p>
                       <p className="text-[10px] text-[#2b9dee] font-semibold mt-0.5">
-                        {s.ai_score}% coincidencia
+                        {getCombinedScore(s.similarity, s.ai_score)}% coincidencia
                       </p>
                     </div>
                   </button>
