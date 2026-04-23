@@ -7,6 +7,10 @@
 ALTER TABLE pets ADD COLUMN IF NOT EXISTS species text;
 
 -- 2. Reemplazar la RPC con nuevos filtros + columna distance_km en el output
+-- DROP previo porque agregamos distance_km al RETURNS TABLE:
+-- CREATE OR REPLACE no permite cambiar return type.
+DROP FUNCTION IF EXISTS find_similar_pets_by_id(uuid);
+
 CREATE OR REPLACE FUNCTION find_similar_pets_by_id(source_pet_id uuid)
 RETURNS TABLE(
   id          uuid,
