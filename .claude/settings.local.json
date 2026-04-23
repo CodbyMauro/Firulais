@@ -14,7 +14,20 @@
       "Bash(python3 \"c:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais/.claude/skills/ui-ux-pro-max/scripts/search.py\" \"mobile app pet social community filters search\" --design-system -p \"Firulais\")",
       "WebFetch(domain:stitch.withgoogle.com)",
       "WebFetch(domain:api.anthropic.com)",
-      "Bash(gunzip)"
+      "Bash(gunzip)",
+      "Bash(supabase functions *)",
+      "Read(//c/Users/mauro/.claude/plugins/cache/superpowers-dev/superpowers/5.0.7/skills/subagent-driven-development/**)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git -C \"/c/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" diff 52acd35df8b1eddcb8e102996908ff20ef05fca2..2c7395391a9c1dad6ff16c1ab7bbc3cb591b73b3 --name-only)",
+      "Bash(git -C \"/c/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" diff 52acd35df8b1eddcb8e102996908ff20ef05fca2..2c7395391a9c1dad6ff16c1ab7bbc3cb591b73b3 -- supabase/functions/find-similar-pets/index.ts)",
+      "Bash(git -C \"/c/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" log --oneline 52acd35..2c7395391a9c1dad6ff16c1ab7bbc3cb591b73b3)",
+      "Bash(git -C \"/c/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" show 2c7395391a9c1dad6ff16c1ab7bbc3cb591b73b3 --stat)",
+      "Bash(node -e ' *)",
+      "Bash(git -C \"C:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" show 042c536 --stat)",
+      "Bash(git -C \"C:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" log -1 --format=%s 042c536)",
+      "Bash(git -C \"C:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" log -1 --format=%s 5471dfb)",
+      "Bash(npm install *)"
     ]
   }
 }
