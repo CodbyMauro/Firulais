@@ -178,6 +178,8 @@ export type SimilarPet = {
   image_url: string | null;
   similarity: number;
   ai_score?: number;
+  /** Distancia en km al reporte source. null si alguna de las dos mascotas no tiene coordenadas. Opcional para tolerar entries de cache generadas antes del cambio. */
+  distance_km?: number | null;
 };
 
 export type SimilarPetsResponse = {
