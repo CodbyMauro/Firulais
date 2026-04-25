@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import { useMenu } from "../context/MenuContext";
 import { usePets } from "../hooks/usePets";
-import { fetchProfilesByIds, type Profile } from "../lib/profileService";
-import UserAvatar from "../components/UserAvatar";
 
 const categories = [
   { icon: "near_me", label: "Cerca", bg: "bg-[#2b9dee]/10", color: "text-[#2b9dee]", path: "/map" },
@@ -19,14 +17,6 @@ export default function HomeScreen() {
   const { openMenu } = useMenu();
   const { pets, isLoading } = usePets();
   const [search, setSearch] = useState("");
-  const [reporterProfiles, setReporterProfiles] = useState<Record<string, Profile>>({});
-
-  useEffect(() => {
-    if (pets.length === 0) return;
-    const ids = [...new Set(pets.map((p) => p.reporter_id).filter(Boolean))] as string[];
-    fetchProfilesByIds(ids).then(setReporterProfiles);
-  }, [pets]);
-
   const filteredPets = search.trim()
     ? pets.filter((p) => {
         const q = search.toLowerCase();
@@ -127,36 +117,32 @@ export default function HomeScreen() {
           {filteredPets.slice(0, 10).map((pet) => (
             <div
               key={pet.id}
-              className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm dark:shadow-slate-900/50 cursor-pointer"
               onClick={() => navigate(`/pet/${pet.id}`)}
+              className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 cursor-pointer active:scale-[0.98] transition-transform duration-150 hover:shadow-lg"
             >
-              <div className="relative h-32 w-full bg-slate-200 dark:bg-slate-600">
+              <div className="relative w-full aspect-square bg-slate-100 dark:bg-slate-700">
                 {pet.image_url
-                  ? <img alt={pet.name ?? ""} className="w-full h-full object-cover" src={pet.image_url} />
-                  : <div className="w-full h-full flex items-center justify-center"><span className="material-symbols-outlined text-[40px] text-slate-300 dark:text-slate-500">pets</span></div>
+                  ? <img src={pet.image_url} alt={pet.name ?? ""} className="w-full h-full object-cover" loading="lazy" />
+                  : <div className="w-full h-full flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[42px] text-slate-300 dark:text-slate-600">pets</span>
+                    </div>
                 }
-                <div className={`absolute top-2 left-2 ${pet.status === "lost" ? "bg-red-600" : "bg-emerald-600"} text-white px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider`}>
-                  {pet.status === "lost" ? "Perdido" : "Encontrado"}
+                <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide shadow ${
+                  pet.status === "lost" ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"
+                }`}>
+                  {pet.status === "lost" ? "Perdido" : "Hallado"}
                 </div>
-                <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-black/40 to-transparent" />
-                <span className="absolute bottom-1.5 right-2 text-[10px] text-white/80 font-medium">{timeAgo(pet.created_at)}</span>
+                <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                  {timeAgo(pet.created_at)}
+                </div>
               </div>
               <div className="p-2.5">
-                <h3 className="text-sm font-bold leading-tight truncate">
-                  {pet.status === "lost" ? (pet.name ?? "Sin nombre") : (pet.breed ?? "Sin raza")}
+                <h3 className="text-[13px] font-extrabold leading-tight truncate dark:text-white">
+                  {pet.status === "lost" ? (pet.name ?? "Sin nombre") : (pet.breed ?? "Mascota")}
                 </h3>
-                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mt-0.5">
-                  <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18, width: 18, height: 18, lineHeight: 1 }}>location_on</span>
-                  <span className="text-[11px] truncate">{pet.location}</span>
-                </div>
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  <UserAvatar
-                    name={pet.reporter_name ?? "Anónimo"}
-                    avatarData={pet.reporter_id ? reporterProfiles[pet.reporter_id]?.avatar_data : null}
-                    avatarUrl={pet.reporter_id ? reporterProfiles[pet.reporter_id]?.avatar_url : null}
-                    size={18}
-                  />
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{pet.reporter_name ?? "Anónimo"}</span>
+                <div className="flex items-center gap-0.5 mt-1">
+                  <span className="material-symbols-outlined text-[#2b9dee] shrink-0" style={{ fontSize: 12, fontVariationSettings: "'FILL' 1" }}>location_on</span>
+                  <span className="text-[10.5px] text-slate-500 dark:text-slate-400 truncate">{pet.location}</span>
                 </div>
               </div>
             </div>
