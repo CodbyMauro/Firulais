@@ -4,11 +4,23 @@ import { useMenu } from "../context/MenuContext";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 
-const menuItems = [
-  { icon: "settings",       label: "Configuración",    path: "/settings" },
-  { icon: "local_hospital", label: "Centros de Ayuda", path: "/centros" },
-  { icon: "help",           label: "Ayuda y Soporte",  path: "/help" },
-  { icon: "celebration",    label: "Finales Felices",  path: "/finales" },
+// TODO: reemplazar por el link real de cobro de Mercado Pago
+// Formato esperado: https://mpago.la/... o https://link.mercadopago.com.ar/...
+const MP_DONATION_URL = "https://mpago.la/REPLACE_ME";
+
+type MenuItem = {
+  icon: string;
+  label: string;
+  path?: string;
+  external?: string;
+};
+
+const menuItems: MenuItem[] = [
+  { icon: "settings",            label: "Configuración",    path: "/settings" },
+  { icon: "local_hospital",      label: "Centros de Ayuda", path: "/centros" },
+  { icon: "help",                label: "Ayuda y Soporte",  path: "/help" },
+  { icon: "celebration",         label: "Finales Felices",  path: "/finales" },
+  { icon: "volunteer_activism",  label: "Donar",            external: MP_DONATION_URL },
 ];
 
 export default function HamburgerMenu() {
@@ -48,6 +60,19 @@ export default function HamburgerMenu() {
 
   const handleNav = (path: string) => { closeMenu(); navigate(path); };
   const handleLogout = async () => { closeMenu(); await logout(); navigate("/login"); };
+
+  const handleItemClick = (item: MenuItem) => {
+    if (item.external) {
+      window.open(item.external, "_blank", "noopener,noreferrer");
+      closeMenu();
+      return;
+    }
+    if (item.path) {
+      handleNav(item.path);
+      return;
+    }
+    closeMenu();
+  };
 
   return (
     <>
@@ -100,7 +125,7 @@ export default function HamburgerMenu() {
           {menuItems.map((item) => (
             <button
               key={item.label}
-              onClick={() => item.path ? handleNav(item.path) : closeMenu()}
+              onClick={() => handleItemClick(item)}
               className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left w-full"
             >
               <div className="w-9 h-9 bg-[#2b9dee]/10 dark:bg-[#2b9dee]/20 rounded-xl flex items-center justify-center shrink-0">
