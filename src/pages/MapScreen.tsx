@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-leaflet";
 import L from "leaflet";
+import { Capacitor } from "@capacitor/core";
+import { Geolocation } from "@capacitor/geolocation";
 import { usePets } from "../hooks/usePets";
 import type { Pet } from "../lib/petsService";
 import { useTheme } from "../context/ThemeContext";
@@ -83,23 +85,66 @@ function FlyTo({ coords, zoom, trigger }: { coords: [number, number]; zoom: numb
 // Buenos Aires default
 const BA: [number, number] = [-34.6037, -58.3816];
 
+// Module-level cache: persists across re-mounts so re-entering the map is instant
+let _lastKnownPos: [number, number] | null = null;
+
 export default function MapScreen() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { pets } = usePets();
   const [markers, setMarkers] = useState<PetMarker[]>([]);
-  const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const [userPos, setUserPos] = useState<[number, number] | null>(_lastKnownPos);
   const [flyTo, setFlyTo] = useState<{ coords: [number, number]; zoom: number; trigger: number } | null>(null);
   const [range, setRange] = useState(2000);
   const [showRangePicker, setShowRangePicker] = useState(false);
   const geocodedRef = useRef<Set<string>>(new Set());
 
-  // Get user location
+  // Two-stage location strategy running in parallel:
+  // Stage 1 — fast network/WiFi location (shows map in ~1s, may use cached result)
+  // Stage 2 — GPS refinement (more accurate, runs concurrently with Stage 1)
+  // Module cache makes re-entry instant while a fresh fix is fetched in background.
   useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
-      (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
-      () => {}
-    );
+    const applyPos = (lat: number, lng: number) => {
+      _lastKnownPos = [lat, lng];
+      setUserPos([lat, lng]);
+    };
+
+    async function getUserLocation() {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          const perm = await Geolocation.requestPermissions();
+          if (perm.location !== "granted") return;
+
+          // Both stages start immediately — no sequential blocking
+          await Promise.allSettled([
+            Geolocation.getCurrentPosition({
+              enableHighAccuracy: false,
+              timeout: 5000,
+              maximumAge: 30000,
+            }).then((p) => applyPos(p.coords.latitude, p.coords.longitude)).catch(() => {}),
+            Geolocation.getCurrentPosition({
+              enableHighAccuracy: true,
+              timeout: 15000,
+              maximumAge: 0,
+            }).then((p) => applyPos(p.coords.latitude, p.coords.longitude)).catch(() => {}),
+          ]);
+        } else {
+          navigator.geolocation?.getCurrentPosition(
+            (pos) => applyPos(pos.coords.latitude, pos.coords.longitude),
+            () => {},
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 30000 }
+          );
+          navigator.geolocation?.getCurrentPosition(
+            (pos) => applyPos(pos.coords.latitude, pos.coords.longitude),
+            () => {},
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+          );
+        }
+      } catch {
+        // Permission denied — silently ignore
+      }
+    }
+    getUserLocation();
   }, []);
 
   // Place markers

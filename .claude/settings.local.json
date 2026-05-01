@@ -27,7 +27,23 @@
       "Bash(git -C \"C:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" show 042c536 --stat)",
       "Bash(git -C \"C:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" log -1 --format=%s 042c536)",
       "Bash(git -C \"C:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" log -1 --format=%s 5471dfb)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(./gradlew assembleDebug)",
+      "Bash(where java *)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files/Android/Android Studio/**)",
+      "PowerShell(Get-Command java -ErrorAction SilentlyContinue; Get-ChildItem \"C:\\\\Program Files\\\\Android Studio\" -ErrorAction SilentlyContinue | Select-Object Name -First 5; Get-ChildItem \"C:\\\\Program Files\\\\Java\" -ErrorAction SilentlyContinue | Select-Object Name; [System.Environment]::GetEnvironmentVariable\\(\"ANDROID_HOME\", \"Machine\"\\); [System.Environment]::GetEnvironmentVariable\\(\"ANDROID_SDK_ROOT\", \"Machine\"\\))",
+      "PowerShell($paths = @\\(\"C:\\\\Program Files\\\\Android Studio\", \"C:\\\\Users\\\\mauro\\\\AppData\\\\Local\\\\Android\", \"C:\\\\Program Files\\\\Eclipse Adoptium\", \"C:\\\\Program Files\\\\Microsoft\", \"C:\\\\Program Files\\\\Eclipse Foundation\"\\); foreach \\($p in $paths\\) { if \\(Test-Path $p\\) { Write-Host \"FOUND: $p\"; Get-ChildItem $p | Select-Object -First 3 -ExpandProperty Name } else { Write-Host \"NOT FOUND: $p\" } })",
+      "Read(//c/Users/mauro/AppData/Local/Android/Sdk/**)",
+      "Read(//c/Users/mauro/AppData/Local/Android/**)",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\mauro\\\\AppData\\\\Local\\\\Android /B\")",
+      "Bash(git -C \"c:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" diff 9084402c66f7e8f9e06e2f550f536f08c43e0973 b15b891335b3bbb9d5509de3978807ea0997ea2a)",
+      "Bash(tar -xf \"C:/Users/mauro/.claude/projects/c--Users-mauro-OneDrive-Documentos-AntigravityProyects-firulais/8d0baa50-aef1-4f97-8592-65de6e24a8bc/tool-results/webfetch-1777594961987-wkajy6.bin\" -C /tmp/firulais-design)",
+      "Bash(xargs wc *)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }

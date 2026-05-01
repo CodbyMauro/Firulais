@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { useTheme } from "../context/ThemeContext";
 import L from "leaflet";
+import { Capacitor } from "@capacitor/core";
+import { Geolocation } from "@capacitor/geolocation";
 import { useAuth } from "../context/AuthContext";
 import { createPet, uploadPetImage } from "../lib/petsService";
 import ImageCropModal from "../components/ImageCropModal";
@@ -81,10 +83,48 @@ function MapPickerModal({
   const [geocoding, setGeocoding] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
-      (p) => setUserPos([p.coords.latitude, p.coords.longitude]),
-      () => {}
-    );
+    async function getPos() {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          const perm = await Geolocation.requestPermissions();
+          if (perm.location !== "granted") return;
+
+          // Stage 1: fast network location
+          try {
+            const fast = await Geolocation.getCurrentPosition({
+              enableHighAccuracy: false,
+              timeout: 5000,
+              maximumAge: 30000,
+            });
+            setUserPos([fast.coords.latitude, fast.coords.longitude]);
+          } catch { /* continue to GPS */ }
+
+          // Stage 2: GPS refinement
+          try {
+            const precise = await Geolocation.getCurrentPosition({
+              enableHighAccuracy: true,
+              timeout: 15000,
+              maximumAge: 0,
+            });
+            setUserPos([precise.coords.latitude, precise.coords.longitude]);
+          } catch { /* GPS failed, keep network position */ }
+        } else {
+          navigator.geolocation?.getCurrentPosition(
+            (p) => setUserPos([p.coords.latitude, p.coords.longitude]),
+            () => {},
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 30000 }
+          );
+          navigator.geolocation?.getCurrentPosition(
+            (p) => setUserPos([p.coords.latitude, p.coords.longitude]),
+            () => {},
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+          );
+        }
+      } catch {
+        // silently ignore
+      }
+    }
+    getPos();
   }, []);
 
   const handlePick = async (lat: number, lng: number) => {
