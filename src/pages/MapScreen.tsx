@@ -48,7 +48,7 @@ function createPinSvg(emoji: string, color: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-  return `<svg width="25" height="32" viewBox="0 0 25 32" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+  return `<svg width="25" height="32" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
     <path d="M 20 0 C 10 0 2 8 2 18 C 2 30 20 50 20 50 C 20 50 38 30 38 18 C 38 8 30 0 20 0 Z" fill="${color}" stroke="white" stroke-width="2"/>
     <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20" dy="-2">${escapedEmoji}</text>
   </svg>`;
