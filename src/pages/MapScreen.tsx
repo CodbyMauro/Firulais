@@ -45,19 +45,6 @@ function createPinSvg(emoji: string, color: string): string {
   </svg>`;
 }
 
-const lostIcon = new L.DivIcon({
-  className: "",
-  html: `<div style="background:#dc2626;width:18px;height:18px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,.3)"></div>`,
-  iconSize: [18, 18],
-  iconAnchor: [9, 18],
-});
-
-const foundIcon = new L.DivIcon({
-  className: "",
-  html: `<div style="background:#059669;width:18px;height:18px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,.3)"></div>`,
-  iconSize: [18, 18],
-  iconAnchor: [9, 18],
-});
 
 const userIcon = new L.DivIcon({
   className: "",
@@ -240,7 +227,15 @@ export default function MapScreen() {
           <Marker
             key={pet.id}
             position={[lat, lng]}
-            icon={pet.status === "lost" ? lostIcon : foundIcon}
+            icon={new L.DivIcon({
+              className: "",
+              html: createPinSvg(
+                getEmojiForPet(pet.type),
+                pet.status === "lost" ? "#dc2626" : "#059669"
+              ),
+              iconSize: [40, 50],
+              iconAnchor: [20, 50],
+            })}
             eventHandlers={{ click: () => setFlyTo({ coords: [lat, lng], zoom: 16, trigger: Date.now() }) }}
           >
             <Popup minWidth={210} maxWidth={210} className="firulais-popup">
