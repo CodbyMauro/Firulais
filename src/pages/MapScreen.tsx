@@ -20,13 +20,6 @@ L.Icon.Default.mergeOptions({
 const CAT_BREEDS = [
   "Gato común / Europeo", "Siamés", "Persa", "Maine Coon", "Bengalí", "Ragdoll", "Angora",
 ];
-const DOG_BREEDS = [
-  "Labrador Retriever", "Golden Retriever", "Pastor Alemán", "Bulldog Francés",
-  "Poodle / Caniche", "Beagle", "Chihuahua", "Dachshund / Salchicha", "Boxer",
-  "Rottweiler", "Husky Siberiano", "Shih Tzu", "Yorkshire Terrier", "Maltés",
-  "Pug / Carlino", "Border Collie", "Cocker Spaniel", "Doberman",
-  "Pitbull / Am. Stafford", "Schnauzer",
-];
 
 function getPetType(breed?: string | null): "cat" | "dog" {
   if (breed && CAT_BREEDS.includes(breed)) return "cat";
