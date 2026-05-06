@@ -22,6 +22,7 @@ const petTypeToEmoji: Record<string, string> = {
   gato: "🐈",
 };
 
+/** Get emoji for a pet type. Used in marker icon rendering for emoji-based pins. */
 function getEmojiForPet(petType?: string): string {
   return petTypeToEmoji[petType || ""] || "🐾"; // fallback to paw print if unknown
 }
