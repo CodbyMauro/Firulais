@@ -30,16 +30,16 @@ const DOG_BREEDS = [
 
 /** Get emoji for a pet based on its breed. Used in marker icon rendering for emoji-based pins. */
 function getEmojiForPet(breed?: string | null): string {
-  if (!breed) return "🐾";
+  if (!breed) return "🐕";
   if (CAT_BREEDS.includes(breed)) return "🐈";
   if (DOG_BREEDS.includes(breed)) return "🐕";
-  return "🐾"; // fallback to paw print if unknown breed
+  return "🐕"; // fallback to dog if unknown breed
 }
 
 /** Generate SVG pin with emoji inside. Returns SVG markup as string. */
 function createPinSvg(emoji: string, color: string): string {
   // Fallback for empty emoji
-  if (!emoji || emoji.trim() === "") emoji = "🐾";
+  if (!emoji || emoji.trim() === "") emoji = "🐕";
 
   // Escape special characters in emoji for SVG safety
   const escapedEmoji = emoji
@@ -48,7 +48,7 @@ function createPinSvg(emoji: string, color: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-  return `<svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+  return `<svg width="25" height="32" viewBox="0 0 25 32" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
     <path d="M 20 0 C 10 0 2 8 2 18 C 2 30 20 50 20 50 C 20 50 38 30 38 18 C 38 8 30 0 20 0 Z" fill="${color}" stroke="white" stroke-width="2"/>
     <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20" dy="-2">${escapedEmoji}</text>
   </svg>`;
@@ -242,8 +242,8 @@ export default function MapScreen() {
                 getEmojiForPet(pet.breed),
                 pet.status === "lost" ? "#dc2626" : "#059669"
               ),
-              iconSize: [40, 50],
-              iconAnchor: [20, 50],
+              iconSize: [25, 32],
+              iconAnchor: [12, 32],
             })}
             eventHandlers={{ click: () => setFlyTo({ coords: [lat, lng], zoom: 16, trigger: Date.now() }) }}
           >
