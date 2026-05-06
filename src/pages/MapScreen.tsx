@@ -16,6 +16,19 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
+// Map pet types to emojis
+const petTypeToEmoji: Record<string, string> = {
+  perro: "🐕",
+  gato: "🐈",
+};
+
+function getEmojiForPet(petType?: string): string {
+  return petTypeToEmoji[petType || ""] || "🐾"; // fallback to paw print if unknown
+}
+
+// Used in next task: converting triangular pins to emoji-based pins
+void getEmojiForPet;
+
 const lostIcon = new L.DivIcon({
   className: "",
   html: `<div style="background:#dc2626;width:18px;height:18px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,.3)"></div>`,
