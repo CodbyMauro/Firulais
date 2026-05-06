@@ -16,12 +16,14 @@ export interface Pet {
   reporter_id: string | null;
   reporter_name: string | null;
   created_at: string;
+  active_until: string | null;
 }
 
 export async function fetchPets(): Promise<Pet[]> {
   const { data, error } = await supabase
     .from("pets")
     .select("*")
+    .gt("active_until", new Date().toISOString())
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data as Pet[];
@@ -58,7 +60,8 @@ export async function fetchPetsPage(options: FetchPetsOptions): Promise<{ pets: 
     .from("pets")
     .select("*")
     .order("created_at", { ascending: false })
-    .range(from, to);
+    .range(from, to)
+    .gt("active_until", new Date().toISOString());
 
   if (status) query = query.eq("status", status);
   if (species === "cat") query = query.in("breed", CAT_BREEDS);
@@ -137,6 +140,15 @@ export interface CreatePetInput {
 
 export async function deletePet(id: string): Promise<void> {
   const { error } = await supabase.from("pets").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function reactivatePet(id: string): Promise<void> {
+  const activeUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { error } = await supabase
+    .from("pets")
+    .update({ active_until: activeUntil })
+    .eq("id", id);
   if (error) throw error;
 }
 
