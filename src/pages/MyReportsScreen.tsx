@@ -68,6 +68,8 @@ export default function MyReportsScreen() {
       setPets((prev) =>
         prev.map((p) => (p.id === id ? { ...p, active_until: activeUntil } : p))
       );
+    } catch {
+      alert("No se pudo reactivar el reporte. Intentá de nuevo.");
     } finally {
       setReactivatingId(null);
     }
