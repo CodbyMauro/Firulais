@@ -33,31 +33,28 @@ function getPetType(breed?: string | null): "cat" | "dog" {
   return "dog";
 }
 
-// SVG face paths centered in 40x36 area (upper part of pin)
-const DOG_FACE = `
-  <ellipse cx="20" cy="19" rx="12" ry="11" fill="white"/>
-  <ellipse cx="9"  cy="21" rx="4.5" ry="6"  fill="white"/>
-  <ellipse cx="31" cy="21" rx="4.5" ry="6"  fill="white"/>
-  <circle  cx="15" cy="17" r="2.2" fill="currentColor"/>
-  <circle  cx="25" cy="17" r="2.2" fill="currentColor"/>
-  <ellipse cx="20" cy="23" rx="3.5" ry="2.5" fill="currentColor"/>
-`;
+// Lucide-style line icons. Drawn in 24x24 viewport, transformed inside the pin.
+const DOG_ICON = `<g transform="translate(8 5) scale(1)" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M11.25 16.25h1.5L12 17z"/>
+  <path d="M16 14v.5"/>
+  <path d="M8 14v.5"/>
+  <path d="M4.42 11.25A13 13 0 0 0 4 14.56C4 18.73 7.58 21 12 21s8-2.27 8-6.44a11.7 11.7 0 0 0-.49-3.31"/>
+  <path d="M8.5 8.5c-.38 1.05-1.08 2.03-2.34 2.5-1.93.72-3.58-.3-3.66-1-.11-.99 1.18-6.53 4-7 1.92-.32 3.65.85 3.65 2.24A7.5 7.5 0 0 1 14 5c0-1.39 1.84-2.6 3.77-2.28 2.82.47 4.11 6.01 4 7-.08.7-1.73 1.72-3.66 1-1.26-.47-1.85-1.45-2.24-2.5"/>
+</g>`;
 
-const CAT_FACE = `
-  <circle  cx="20" cy="20" r="11"  fill="white"/>
-  <path    d="M10 13 L7 4  L16 11 Z" fill="white"/>
-  <path    d="M30 13 L33 4 L24 11 Z" fill="white"/>
-  <circle  cx="15" cy="19" r="2.2" fill="currentColor"/>
-  <circle  cx="25" cy="19" r="2.2" fill="currentColor"/>
-  <path    d="M18.5 23.5 L20 25.5 L21.5 23.5 L20 22.5 Z" fill="currentColor"/>
-`;
+const CAT_ICON = `<g transform="translate(8 5) scale(1)" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9 9 0 0 1 12 5Z"/>
+  <path d="M8 14v.5"/>
+  <path d="M16 14v.5"/>
+  <path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/>
+</g>`;
 
-/** Generate SVG pin with animal face inside. Returns SVG markup as string. */
+/** Generate SVG pin with Lucide-style animal icon. Returns SVG markup as string. */
 function createPinSvg(petType: "dog" | "cat", color: string): string {
-  const face = petType === "cat" ? CAT_FACE : DOG_FACE;
-  return `<svg width="32" height="40" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-    <path d="M 20 0 C 10 0 2 8 2 18 C 2 30 20 50 20 50 C 20 50 38 30 38 18 C 38 8 30 0 20 0 Z" fill="${color}" stroke="white" stroke-width="1.5"/>
-    <g color="${color}">${face}</g>
+  const icon = petType === "cat" ? CAT_ICON : DOG_ICON;
+  return `<svg width="36" height="44" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));">
+    <path d="M 20 0 C 10 0 2 8 2 18 C 2 30 20 50 20 50 C 20 50 38 30 38 18 C 38 8 30 0 20 0 Z" fill="${color}" stroke="white" stroke-width="2"/>
+    ${icon}
   </svg>`;
 }
 
@@ -249,8 +246,8 @@ export default function MapScreen() {
                 getPetType(pet.breed),
                 pet.status === "lost" ? "#dc2626" : "#059669"
               ),
-              iconSize: [32, 40],
-              iconAnchor: [16, 40],
+              iconSize: [36, 44],
+              iconAnchor: [18, 44],
             })}
             eventHandlers={{ click: () => setFlyTo({ coords: [lat, lng], zoom: 16, trigger: Date.now() }) }}
           >
