@@ -28,29 +28,36 @@ const DOG_BREEDS = [
   "Pitbull / Am. Stafford", "Schnauzer",
 ];
 
-/** Get emoji for a pet based on its breed. Used in marker icon rendering for emoji-based pins. */
-function getEmojiForPet(breed?: string | null): string {
-  if (!breed) return "🐕";
-  if (CAT_BREEDS.includes(breed)) return "🐈";
-  if (DOG_BREEDS.includes(breed)) return "🐕";
-  return "🐕"; // fallback to dog if unknown breed
+function getPetType(breed?: string | null): "cat" | "dog" {
+  if (breed && CAT_BREEDS.includes(breed)) return "cat";
+  return "dog";
 }
 
-/** Generate SVG pin with emoji inside. Returns SVG markup as string. */
-function createPinSvg(emoji: string, color: string): string {
-  // Fallback for empty emoji
-  if (!emoji || emoji.trim() === "") emoji = "🐕";
+// SVG face paths centered in 40x36 area (upper part of pin)
+const DOG_FACE = `
+  <ellipse cx="20" cy="19" rx="12" ry="11" fill="white"/>
+  <ellipse cx="9"  cy="21" rx="4.5" ry="6"  fill="white"/>
+  <ellipse cx="31" cy="21" rx="4.5" ry="6"  fill="white"/>
+  <circle  cx="15" cy="17" r="2.2" fill="currentColor"/>
+  <circle  cx="25" cy="17" r="2.2" fill="currentColor"/>
+  <ellipse cx="20" cy="23" rx="3.5" ry="2.5" fill="currentColor"/>
+`;
 
-  // Escape special characters in emoji for SVG safety
-  const escapedEmoji = emoji
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+const CAT_FACE = `
+  <circle  cx="20" cy="20" r="11"  fill="white"/>
+  <path    d="M10 13 L7 4  L16 11 Z" fill="white"/>
+  <path    d="M30 13 L33 4 L24 11 Z" fill="white"/>
+  <circle  cx="15" cy="19" r="2.2" fill="currentColor"/>
+  <circle  cx="25" cy="19" r="2.2" fill="currentColor"/>
+  <path    d="M18.5 23.5 L20 25.5 L21.5 23.5 L20 22.5 Z" fill="currentColor"/>
+`;
 
-  return `<svg width="25" height="32" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-    <path d="M 20 0 C 10 0 2 8 2 18 C 2 30 20 50 20 50 C 20 50 38 30 38 18 C 38 8 30 0 20 0 Z" fill="${color}" stroke="white" stroke-width="2"/>
-    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20" dy="-2">${escapedEmoji}</text>
+/** Generate SVG pin with animal face inside. Returns SVG markup as string. */
+function createPinSvg(petType: "dog" | "cat", color: string): string {
+  const face = petType === "cat" ? CAT_FACE : DOG_FACE;
+  return `<svg width="32" height="40" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+    <path d="M 20 0 C 10 0 2 8 2 18 C 2 30 20 50 20 50 C 20 50 38 30 38 18 C 38 8 30 0 20 0 Z" fill="${color}" stroke="white" stroke-width="1.5"/>
+    <g color="${color}">${face}</g>
   </svg>`;
 }
 
@@ -239,11 +246,11 @@ export default function MapScreen() {
             icon={new L.DivIcon({
               className: "",
               html: createPinSvg(
-                getEmojiForPet(pet.breed),
+                getPetType(pet.breed),
                 pet.status === "lost" ? "#dc2626" : "#059669"
               ),
-              iconSize: [25, 32],
-              iconAnchor: [12, 32],
+              iconSize: [32, 40],
+              iconAnchor: [16, 40],
             })}
             eventHandlers={{ click: () => setFlyTo({ coords: [lat, lng], zoom: 16, trigger: Date.now() }) }}
           >
