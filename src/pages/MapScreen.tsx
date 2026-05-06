@@ -16,15 +16,24 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// Map pet types to emojis
-const petTypeToEmoji: Record<string, string> = {
-  perro: "🐕",
-  gato: "🐈",
-};
+// Breed arrays to determine pet type
+const CAT_BREEDS = [
+  "Gato común / Europeo", "Siamés", "Persa", "Maine Coon", "Bengalí", "Ragdoll", "Angora",
+];
+const DOG_BREEDS = [
+  "Labrador Retriever", "Golden Retriever", "Pastor Alemán", "Bulldog Francés",
+  "Poodle / Caniche", "Beagle", "Chihuahua", "Dachshund / Salchicha", "Boxer",
+  "Rottweiler", "Husky Siberiano", "Shih Tzu", "Yorkshire Terrier", "Maltés",
+  "Pug / Carlino", "Border Collie", "Cocker Spaniel", "Doberman",
+  "Pitbull / Am. Stafford", "Schnauzer",
+];
 
-/** Get emoji for a pet type. Used in marker icon rendering for emoji-based pins. */
-function getEmojiForPet(petType?: string): string {
-  return petTypeToEmoji[petType || ""] || "🐾"; // fallback to paw print if unknown
+/** Get emoji for a pet based on its breed. Used in marker icon rendering for emoji-based pins. */
+function getEmojiForPet(breed?: string | null): string {
+  if (!breed) return "🐾";
+  if (CAT_BREEDS.includes(breed)) return "🐈";
+  if (DOG_BREEDS.includes(breed)) return "🐕";
+  return "🐾"; // fallback to paw print if unknown breed
 }
 
 /** Generate SVG pin with emoji inside. Returns SVG markup as string. */
@@ -230,7 +239,7 @@ export default function MapScreen() {
             icon={new L.DivIcon({
               className: "",
               html: createPinSvg(
-                getEmojiForPet(pet.type),
+                getEmojiForPet(pet.breed),
                 pet.status === "lost" ? "#dc2626" : "#059669"
               ),
               iconSize: [40, 50],
