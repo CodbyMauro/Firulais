@@ -29,6 +29,108 @@ body {
   min-height: 100svh;
 }
 
+/* Altura zona tab bar inferior + safe area — scroll y FAB sobre móvil */
+:root {
+  --firulais-mobile-tab-clearance: calc(6.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.pb-mobile-tab {
+  padding-bottom: var(--firulais-mobile-tab-clearance);
+}
+
+/* Teclado abierto: tab bar SIGUE fixed (sin hueco al scrollear), se oculta bajo pantalla sin animación larga */
+html.native-app .firulais-bottom-nav {
+  transform: translateZ(0);
+  transition: none;
+}
+
+html.native-app[data-keyboard="open"] .firulais-bottom-nav {
+  transform: translate3d(0, 100%, 0);
+  pointer-events: none;
+}
+
+html.native-app .firulais-floating-action {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition: none;
+}
+
+html.native-app[data-keyboard="open"] .firulais-floating-action {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 100%, 0);
+}
+
+html.native-app[data-keyboard="open"] .pb-mobile-tab {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 8px));
+}
+
+/* Capacitor: zona segura + scroll solo en #root (evita bounce al estirar en todos los bordes) */
+html.native-app {
+  --app-top-inset: max(env(safe-area-inset-top, 0px), 10px);
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
+
+html.native-app body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  /* Inset fijo fuera del scroll: si está en #root sube al hacer scroll y el contenido vuelve bajo status bar/notch */
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--app-top-inset);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+html.native-app #root {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Puente altura Capacitor: el árbol de rutas debe encajar exacto en #root (evita scroll fantasma). */
+html.native-app .route-outlet-grow {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Chat 1-a-1 en web usa viewport alto; en nativo usa el flex del padre. */
+.conversation-route {
+  display: flex;
+  flex-direction: column;
+}
+html:not(.native-app) .conversation-route {
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+html.native-app .conversation-route {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 /* Leaflet popup — estilo moderno sin padding/borde por defecto */
 .firulais-popup .leaflet-popup-content-wrapper {
   padding: 0;

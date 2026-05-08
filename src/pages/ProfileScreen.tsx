@@ -51,7 +51,7 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-2xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-24 lg:pb-8">
+    <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-2xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-8">
 
       {/* Header */}
       <div className="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">

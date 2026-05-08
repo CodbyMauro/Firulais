@@ -6,7 +6,7 @@ export default function SettingsScreen() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-2xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white">
+    <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-2xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
         <div className="flex items-center p-4 pb-2 justify-between">

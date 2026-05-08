@@ -103,7 +103,7 @@ export default function HomeScreen() {
       <div className="h-2.5 bg-slate-100 dark:bg-slate-900 w-full shrink-0" />
 
       {/* Feed */}
-      <div className="flex flex-1 flex-col min-h-0 bg-[#f6f7f8] dark:bg-slate-900 pb-24 lg:pb-8">
+      <div className="flex flex-1 flex-col min-h-0 bg-[#f6f7f8] dark:bg-slate-900 pb-mobile-tab lg:pb-8">
         <div className="flex shrink-0 items-center justify-between px-4 pt-3 pb-3">
           <div>
             <h2 className="text-[18px] font-extrabold tracking-tight text-slate-900 dark:text-white">Reportes recientes</h2>
@@ -172,7 +172,7 @@ export default function HomeScreen() {
 
       {/* FAB */}
       <button
-        className="fixed bottom-24 lg:bottom-6 right-6 w-14 h-14 text-white rounded-full shadow-xl flex items-center justify-center z-20"
+        className="firulais-floating-action fixed max-lg:bottom-[var(--firulais-mobile-tab-clearance)] max-lg:z-[45] lg:bottom-6 lg:z-20 right-6 w-14 h-14 text-white rounded-full shadow-xl flex items-center justify-center"
         style={{ background: "linear-gradient(135deg, #2b9dee, rgba(43,157,238,0.75))", boxShadow: "0 8px 24px rgba(43,157,238,0.45)" }}
         onClick={() => navigate("/report")}
       >

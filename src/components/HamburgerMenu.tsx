@@ -84,10 +84,14 @@ export default function HamburgerMenu() {
 
       {/* Drawer */}
       <div
-        className={`lg:hidden fixed top-0 right-0 z-50 h-full w-72 max-w-[85vw] bg-white dark:bg-slate-800 shadow-2xl dark:shadow-slate-900/50 flex flex-col transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        style={{
+          top: "var(--app-top-inset, 0px)",
+          height: "calc(100dvh - var(--app-top-inset, 0px))",
+        }}
+        className={`lg:hidden fixed right-0 z-50 w-72 max-w-[85vw] bg-white dark:bg-slate-800 shadow-2xl dark:shadow-slate-900/50 flex flex-col transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Header del drawer */}
-        <div className="flex items-center justify-between px-5 pt-12 pb-6 border-b border-slate-100 dark:border-slate-700">
+        <div className="flex items-center justify-between px-5 pt-6 pb-6 border-b border-slate-100 dark:border-slate-700">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full bg-[#2b9dee]/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-[28px] text-[#2b9dee]">account_circle</span>
@@ -139,7 +143,7 @@ export default function HamburgerMenu() {
         </nav>
 
         {/* Logout */}
-        <div className="px-3 pb-10 pt-2 border-t border-slate-100 dark:border-slate-700">
+        <div className="px-3 pb-14 pt-2 border-t border-slate-100 dark:border-slate-700">
           <button
             onClick={handleLogout}
             className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-left w-full"

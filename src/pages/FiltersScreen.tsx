@@ -1,10 +1,60 @@
+import type { FC, SVGProps } from "react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-const SPECIES_OPTIONS = [
-  { label: "Perro", value: "dog",  icon: "psychiatry"   },
-  { label: "Gato",  value: "cat",  icon: "cruelty_free" },
-  { label: "Otros", value: "other",icon: "more_horiz"   },
+/** Siluetas claras perro/gato (trazos inspirados en Lucide ISC). */
+function SpeciesIconDog(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...props}
+    >
+      <path d="M11.25 16.25h1.5L12 17z" />
+      <path d="M16 14v.5" />
+      <path d="M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444a11.702 11.702 0 0 0-.493-3.309" />
+      <path d="M8 14v.5" />
+      <path d="M8.5 8.5c-.384 1.05-1.083 2.028-2.344 2.5-1.931.722-3.576-.297-3.656-1-.113-.994 1.177-6.53 4-7 1.923-.321 3.651.845 3.651 2.235A7.497 7.497 0 0 1 14 5.277c0-1.39 1.844-2.598 3.767-2.277 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5" />
+    </svg>
+  );
+}
+
+function SpeciesIconCat(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...props}
+    >
+      <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z" />
+      <path d="M8 14v.5" />
+      <path d="M16 14v.5" />
+      <path d="M11.25 16.25h1.5L12 17l-.75-.75Z" />
+    </svg>
+  );
+}
+
+const SPECIES_OPTIONS: {
+  label: string;
+  value: string;
+  Icon?: FC<SVGProps<SVGSVGElement>>;
+  materialIcon?: string;
+}[] = [
+  { label: "Perro", value: "dog", Icon: SpeciesIconDog },
+  { label: "Gato", value: "cat", Icon: SpeciesIconCat },
+  { label: "Otros", value: "other", materialIcon: "more_horiz" },
 ];
 
 const SIZES = ["Pequeño", "Mediano", "Grande"];
@@ -76,27 +126,34 @@ export default function FiltersScreen() {
   const pct = ((distance - 1) / 49) * 100;
 
   return (
-    <div className="relative flex h-screen w-full flex-col bg-[#f6f7f8] dark:bg-[#101a22] font-display text-slate-900 dark:text-slate-100 overflow-x-hidden mx-auto max-w-[430px]">
+    <div className="mx-auto flex h-[100dvh] max-h-[100dvh] min-h-0 w-full max-w-[430px] flex-col overflow-hidden overscroll-none bg-[#f6f7f8] font-display text-slate-900 dark:bg-[#101a22] dark:text-slate-100">
 
-      {/* TopAppBar */}
-      <div className="flex items-center bg-white dark:bg-[#101a22] p-4 pb-2 justify-between sticky top-0 z-10 border-b border-slate-100 dark:border-slate-800">
-        <button onClick={() => navigate(-1)} className="flex size-12 shrink-0 items-center justify-start cursor-pointer">
-          <span className="material-symbols-outlined">close</span>
-        </button>
-        <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">
-          Filtros de Búsqueda
-        </h2>
-        <div className="flex w-12 items-center justify-end">
-          <button onClick={handleReset} className="text-[#2b9dee] text-base font-bold cursor-pointer">
+      {/* Un solo área scroll: evita contenido cortado detrás del header y sticky raro */}
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain [scrollbar-gutter:stable]">
+        {/* Top bar (scrollea con la vista; mismo padding horizontal que las secciones) */}
+        <div className="fixed left-0 right-0 flex items-center gap-3 border-b border-slate-100 bg-white px-4 pb-3 pt-4 dark:border-slate-800 dark:bg-[#101a22]">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            aria-label="Cerrar"
+          >
+            <span className="material-symbols-outlined text-[22px]">close</span>
+          </button>
+          <h1 className="min-w-0 flex-1 text-center text-lg font-bold leading-tight tracking-tight">
+            Filtros de Búsqueda
+          </h1>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="flex h-11 shrink-0 items-center px-3 text-[#2b9dee] cursor-pointer rounded-xl text-[15px] font-bold whitespace-nowrap"
+          >
             Limpiar
           </button>
         </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto pb-32">
 
         {/* Estado */}
-        <h3 className="text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Estado</h3>
+        <h3 className="mt-18 px-4 pb-2 pt-5 text-lg font-bold leading-tight tracking-tight">Estado</h3>
         <div className="flex gap-3 px-4 py-2 flex-wrap">
           {STATUS_OPTIONS.map(({ label, value }) => (
             <button
@@ -114,21 +171,28 @@ export default function FiltersScreen() {
         {/* Especie */}
         <h3 className="text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Especie</h3>
         <div className="flex gap-3 px-4 py-2 flex-wrap">
-          {SPECIES_OPTIONS.map(({ label, value, icon }) => (
+          {SPECIES_OPTIONS.map(({ label, value, Icon, materialIcon }) => (
             <button
               key={value}
               onClick={() => setSelectedSpecies(s => s === value ? "" : value)}
               className={selectedSpecies === value ? active : inactive}
             >
-              <span
-                className="material-symbols-outlined text-[20px]"
-                style={{
-                  color: selectedSpecies === value ? "white" : "#64748b",
-                  fontVariationSettings: selectedSpecies === value ? "'FILL' 1" : "'FILL' 0",
-                }}
-              >
-                {icon}
-              </span>
+              {Icon ? (
+                <Icon
+                  className="size-5 shrink-0"
+                  style={{ color: selectedSpecies === value ? "white" : "#64748b" }}
+                />
+              ) : (
+                <span
+                  className="material-symbols-outlined text-[20px]"
+                  style={{
+                    color: selectedSpecies === value ? "white" : "#64748b",
+                    fontVariationSettings: selectedSpecies === value ? "'FILL' 1" : "'FILL' 0",
+                  }}
+                >
+                  {materialIcon}
+                </span>
+              )}
               <p className={`text-sm ${selectedSpecies === value ? "font-semibold" : "font-medium text-slate-700 dark:text-slate-300"}`}>
                 {label}
               </p>
@@ -245,21 +309,26 @@ export default function FiltersScreen() {
               </span>
             </div>
           </div>
-          <p className="text-sm text-slate-500 text-center">Tocá para cambiar la ubicación</p>
+          <p className="pb-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            Tocá para cambiar la ubicación
+          </p>
         </div>
-
       </div>
 
-      {/* Footer fijo */}
-      <div className="absolute bottom-0 left-0 w-full p-4 bg-white dark:bg-[#101a22] border-t border-slate-100 dark:border-slate-800">
+      {/* Footer: flujo normal (sin absolute) para no tapar contenido ni chocar con el scroll */}
+      <footer
+        className="shrink-0 border-t border-slate-100 bg-white px-4 pt-4 dark:border-slate-800 dark:bg-[#101a22]"
+        style={{ paddingBottom: "calc(50px + env(safe-area-inset-bottom, 0px))" }}
+      >
         <button
+          type="button"
           onClick={handleApply}
-          className="w-full bg-[#2b9dee] hover:bg-[#2b9dee]/90 text-white font-bold py-4 rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#2b9dee] py-4 text-center font-bold text-white shadow-lg transition-colors hover:bg-[#2b9dee]/90"
         >
           <span>Aplicar Filtros</span>
           <span className="material-symbols-outlined text-[20px]">search</span>
         </button>
-      </div>
+      </footer>
     </div>
   );
 }

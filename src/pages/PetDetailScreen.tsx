@@ -170,7 +170,7 @@ export default function PetDetailScreen() {
         />
 
         {/* top buttons */}
-        <div className="absolute flex justify-between items-center" style={{ top: 54, left: 16, right: 16 }}>
+        <div className="absolute flex justify-between items-center" style={{ top: 24, left: 16, right: 16 }}>
           <button
             onClick={() => navigate(-1)}
             style={glassBtnStyle}
@@ -556,7 +556,7 @@ export default function PetDetailScreen() {
           className="fixed left-0 right-0 max-w-[430px] lg:max-w-3xl mx-auto z-50 bg-white dark:bg-slate-900 px-5 pt-3"
           style={{
             bottom: 0,
-            paddingBottom: "env(safe-area-inset-bottom, 4px)",
+            paddingBottom: "calc(env(safe-area-inset-bottom, 4px) + 10px",
             boxShadow: "0 -8px 24px rgba(0,0,0,0.08)",
           }}
         >

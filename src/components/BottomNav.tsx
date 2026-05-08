@@ -27,7 +27,7 @@ export default function BottomNav() {
   }, [user, location.pathname]);
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 pt-2 z-30" style={{ paddingBottom: "calc(8px + env(safe-area-inset-bottom))" }}>
+    <div className="firulais-bottom-nav lg:hidden fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 pt-2 z-30" style={{ paddingBottom: "calc(8px + env(safe-area-inset-bottom))" }}>
       <div className="flex gap-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;

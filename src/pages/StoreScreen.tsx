@@ -27,7 +27,7 @@ export default function StoreScreen() {
   const showCenteredPlaceholder = isLoading || filtered.length === 0;
 
   return (
-    <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-24 lg:pb-8">
+    <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-8">
       {/* Cabecera + pills: un solo bloque y un solo borde inferior (evita línea entre título y pills) */}
       <div className="sticky top-0 z-10 border-b border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-800">
         <div className="flex items-center justify-between p-4 pb-2">

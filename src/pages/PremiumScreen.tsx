@@ -89,7 +89,7 @@ export default function PremiumScreen() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen max-w-[430px] lg:max-w-3xl mx-auto bg-white dark:bg-slate-800 font-display text-slate-900 dark:text-white">
+    <div className="flex flex-col min-h-screen max-w-[430px] lg:max-w-3xl mx-auto bg-white dark:bg-slate-800 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-8">
 
       {/* Header */}
       <div className="flex items-center px-4 pt-4 pb-2">
@@ -121,7 +121,7 @@ export default function PremiumScreen() {
         </div>
       )}
 
-      <div className="flex-1 px-4 flex flex-col gap-6 pb-10">
+      <div className="flex-1 px-4 flex flex-col gap-6 pb-4">
 
         {/* Hero */}
         <div className="flex flex-col items-center text-center gap-3 py-2">

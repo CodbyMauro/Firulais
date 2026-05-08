@@ -52,10 +52,13 @@ export default function AdminLayout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`
+      <aside
+        style={{ paddingTop: "var(--app-top-inset, env(safe-area-inset-top, 0px))" }}
+        className={`
         fixed lg:static inset-y-0 left-0 z-30 w-64 flex flex-col bg-white border-r border-slate-200 transition-transform duration-200
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-      `}>
+      `}
+      >
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-200">
           <div className="w-8 h-8 rounded-xl bg-[#2b9dee] flex items-center justify-center">

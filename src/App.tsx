@@ -28,6 +28,7 @@ import StoreScreen from "./pages/StoreScreen";
 import PremiumScreen from "./pages/PremiumScreen";
 import AllReportsScreen from "./pages/AllReportsScreen";
 import HelpScreen from "./pages/HelpScreen";
+import NativeKeyboardBindings from "./components/NativeKeyboardBindings";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminAdoptionsScreen from "./pages/admin/AdminAdoptionsScreen";
@@ -38,10 +39,10 @@ import AdminHelpCentersScreen from "./pages/admin/AdminHelpCentersScreen";
 
 function AppShell() {
   return (
-    <div className="lg:flex lg:h-screen lg:overflow-hidden">
+    <div className="flex w-full flex-1 flex-col min-h-0 lg:h-screen lg:flex-none lg:flex-row lg:overflow-hidden">
       <SideNav />
       <HamburgerMenu />
-      <main className="flex-1 min-w-0 lg:overflow-auto">
+      <main className="flex flex-1 min-h-0 min-w-0 flex-col lg:overflow-auto">
         <Routes>
           <Route path="/" element={<Navigate to="/splash" replace />} />
           <Route path="/splash" element={<SplashScreen />} />
@@ -80,6 +81,8 @@ export default function App() {
     <AuthProvider>
     <MenuProvider>
     <BrowserRouter>
+      <NativeKeyboardBindings />
+      <div className="route-outlet-grow">
       <Routes>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
@@ -91,6 +94,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<AppShell />} />
       </Routes>
+      </div>
     </BrowserRouter>
     </MenuProvider>
     </AuthProvider>

@@ -144,13 +144,13 @@ export default function AllReportsScreen() {
   const totalActiveFilters = activeFilterChips.length + (statusParam ? 1 : 0);
 
   return (
-    <div className="flex flex-col min-h-screen max-w-[430px] lg:max-w-2xl mx-auto bg-[#f6f7f8] dark:bg-[#101a22] font-display text-slate-900 dark:text-slate-100 pb-8">
+    <div className="flex flex-col min-h-screen max-w-[430px] lg:max-w-2xl mx-auto bg-[#f6f7f8] dark:bg-[#101a22] font-display text-slate-900 dark:text-slate-100 pb-[calc(3rem+env(safe-area-inset-bottom,0px))] lg:pb-8">
 
       {/* Header sticky */}
       <div className="sticky top-0 z-20 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
 
         {/* Búsqueda */}
-        <div className="flex items-center gap-3 px-4 pt-3 pb-2">
+        <div className="flex min-w-0 items-center gap-2 pl-4 pr-5 pt-3 pb-2 sm:gap-3 sm:pr-6">
           <button
             onClick={() => navigate(-1)}
             className="flex size-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 shrink-0 cursor-pointer"
@@ -158,10 +158,10 @@ export default function AllReportsScreen() {
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
 
-          <div className="flex flex-1 items-center bg-slate-100 dark:bg-slate-700 rounded-xl h-9 px-3 gap-2">
+          <div className="flex min-w-0 flex-1 items-center bg-slate-100 dark:bg-slate-700 rounded-xl h-9 px-3 gap-2">
             <span className="material-symbols-outlined text-[18px] text-slate-400">search</span>
             <input
-              className="flex-1 bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+              className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
               placeholder="Raza, color, nombre..."
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -173,38 +173,40 @@ export default function AllReportsScreen() {
             )}
           </div>
 
-          {/* Toggle layout */}
-          <button
-            onClick={() => setLayout(l => l === "grid" ? "list" : "grid")}
-            className="flex size-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 shrink-0 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[20px] text-slate-500 dark:text-slate-400">
-              {layout === "grid" ? "view_list" : "grid_view"}
-            </span>
-          </button>
-
-          {/* Botón filtros */}
-          <button
-            onClick={() => navigate(`/filters?${searchParams.toString()}`)}
-            className={`relative flex size-9 items-center justify-center rounded-xl shrink-0 cursor-pointer transition-colors ${
-              totalActiveFilters > 0
-                ? "bg-[#2b9dee]/10 dark:bg-[#2b9dee]/20"
-                : "bg-slate-100 dark:bg-slate-700"
-            }`}
-          >
-            <span className={`material-symbols-outlined text-[20px] ${totalActiveFilters > 0 ? "text-[#2b9dee]" : ""}`}>
-              tune
-            </span>
-            {totalActiveFilters > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#2b9dee] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                {totalActiveFilters}
+          <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+            {/* Toggle layout */}
+            <button
+              onClick={() => setLayout(l => l === "grid" ? "list" : "grid")}
+              className="flex size-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[20px] text-slate-500 dark:text-slate-400">
+                {layout === "grid" ? "view_list" : "grid_view"}
               </span>
-            )}
-          </button>
+            </button>
+
+            {/* Botón filtros */}
+            <button
+              onClick={() => navigate(`/filters?${searchParams.toString()}`)}
+              className={`relative flex size-9 items-center justify-center rounded-xl cursor-pointer transition-colors ${
+                totalActiveFilters > 0
+                  ? "bg-[#2b9dee]/10 dark:bg-[#2b9dee]/20"
+                  : "bg-slate-100 dark:bg-slate-700"
+              }`}
+            >
+              <span className={`material-symbols-outlined text-[20px] ${totalActiveFilters > 0 ? "text-[#2b9dee]" : ""}`}>
+                tune
+              </span>
+              {totalActiveFilters > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#2b9dee] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {totalActiveFilters}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Tabs de estado */}
-        <div className="flex px-4 gap-1 pb-2">
+        <div className="flex gap-1 px-4 pb-2 sm:px-5">
           {STATUS_TABS.map(tab => {
             const isActive = statusParam === tab.value;
             return (
@@ -231,7 +233,7 @@ export default function AllReportsScreen() {
 
         {/* Chips de filtros activos */}
         {activeFilterChips.length > 0 && (
-          <div className="flex gap-2 px-4 pb-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-2 px-4 pb-3 overflow-x-auto sm:px-5 [&::-webkit-scrollbar]:hidden">
             {activeFilterChips.map(chip => (
               <ActiveFilterChip
                 key={chip.key}

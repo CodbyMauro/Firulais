@@ -176,12 +176,12 @@ export default function MapScreen() {
   const CAROUSEL_H = 172;
 
   return (
-    <div className="relative w-full max-w-[430px] lg:max-w-none overflow-hidden [&_.leaflet-bottom]:pb-[calc(12px+env(safe-area-inset-bottom))]" style={{ height: "100dvh" }}>
+    <div className="relative w-full max-w-[430px] lg:max-w-none overflow-hidden [&_.leaflet-bottom]:pb-[calc(12px+env(safe-area-inset-bottom))]" style={{ height: "calc(100dvh - var(--app-top-inset, 0px))" }}>
       {/* Full-screen map */}
       <MapContainer
         center={userPos ?? BA}
         zoom={13}
-        style={{ height: "100dvh", width: "100%" }}
+        style={{ height: "calc(100dvh - var(--app-top-inset, 0px))", width: "100%" }}
         zoomControl={false}
         attributionControl={false}
       >
@@ -270,7 +270,7 @@ export default function MapScreen() {
       <button
         onClick={() => navigate(-1)}
         className="absolute left-4 z-[1000] w-11 h-11 bg-white dark:bg-slate-800 rounded-full shadow-lg flex items-center justify-center"
-        style={{ top: "calc(16px + env(safe-area-inset-top))" }}
+        style={{ top: "16px" }}
       >
         <span className="material-symbols-outlined text-[22px] text-slate-800 dark:text-white">arrow_back</span>
       </button>
@@ -278,7 +278,7 @@ export default function MapScreen() {
       {/* Legend */}
       <div
         className="absolute right-4 z-[1000] bg-white dark:bg-slate-800 rounded-xl shadow-lg dark:shadow-slate-900/50 px-3 py-2 flex flex-col gap-1.5"
-        style={{ top: "calc(16px + env(safe-area-inset-top))" }}
+        style={{ top: "16px" }}
       >
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-red-600" />

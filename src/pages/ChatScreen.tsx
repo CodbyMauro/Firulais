@@ -26,7 +26,11 @@ function ConfirmDeleteModal({
   onCancel: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-8" onClick={onCancel}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 overscroll-none"
+      onClick={onCancel}
+      role="presentation"
+    >
       <div
         className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl p-6 flex flex-col gap-4 shadow-xl"
         onClick={(e) => e.stopPropagation()}
@@ -322,7 +326,7 @@ export default function ChatScreen() {
         })();
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col bg-[#f6f7f8] pb-24 font-display text-slate-900 dark:bg-slate-900 dark:text-white lg:max-w-none lg:pb-0">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col bg-[#f6f7f8] pb-mobile-tab font-display text-slate-900 dark:bg-slate-900 dark:text-white lg:max-w-none lg:pb-0">
       <div className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
         {selectionMode ? (
           <>

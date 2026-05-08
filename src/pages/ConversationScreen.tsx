@@ -100,9 +100,9 @@ export default function ConversationScreen() {
   };
 
   return (
-    <div className="flex h-screen w-full max-w-[430px] lg:max-w-none mx-auto flex-col bg-white dark:bg-slate-800 font-display text-slate-900 dark:text-white">
+    <div className="conversation-route w-full max-w-[430px] lg:max-w-none mx-auto bg-white dark:bg-slate-800 font-display text-slate-900 dark:text-white">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10">
+      <div className="flex shrink-0 items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 z-10">
         <button
           type="button"
           onClick={() => {
@@ -130,8 +130,8 @@ export default function ConversationScreen() {
         </div>
       </div>
 
-      {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2 bg-[#f6f7f8] dark:bg-slate-900">
+      {/* Mensajes: min-h-0 para que sólo esta zona use scroll (flex). */}
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain px-4 py-4 flex flex-col gap-2 bg-[#f6f7f8] dark:bg-slate-900">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center flex-1 gap-2 text-slate-400 dark:text-slate-500 py-16">
             <span className="material-symbols-outlined text-[40px]">chat_bubble</span>
@@ -169,7 +169,7 @@ export default function ConversationScreen() {
       {/* Input */}
       <form
         onSubmit={handleSend}
-        className="shrink-0 flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700"
+        className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700"
       >
         <input
           className="flex-1 h-11 rounded-full bg-slate-100 dark:bg-slate-700 px-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
