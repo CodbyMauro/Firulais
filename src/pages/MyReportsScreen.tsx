@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { fetchMyPets, deletePet, type Pet } from "../lib/petsService";
+import { fetchMyPets, deletePet, reactivatePet, type Pet } from "../lib/petsService";
 import { fetchProfile, type Profile } from "../lib/profileService";
 import UserAvatar from "../components/UserAvatar";
 import BottomNav from "../components/BottomNav";
@@ -15,6 +15,7 @@ export default function MyReportsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [reactivatingId, setReactivatingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -49,6 +50,126 @@ export default function MyReportsScreen() {
 
   const petToDelete = pets.find((p) => p.id === confirmId);
 
+  const isActive = (pet: Pet): boolean => {
+    if (!pet.active_until) return false;
+    return new Date(pet.active_until).getTime() > Date.now();
+  };
+
+  const daysRemaining = (activeUntil: string | null): number => {
+    if (!activeUntil) return 0;
+    return Math.ceil((new Date(activeUntil).getTime() - Date.now()) / 86400000);
+  };
+
+  const handleReactivate = async (id: string) => {
+    setReactivatingId(id);
+    try {
+      await reactivatePet(id);
+      const activeUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      setPets((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, active_until: activeUntil } : p))
+      );
+    } catch {
+      alert("No se pudo reactivar el reporte. Intentá de nuevo.");
+    } finally {
+      setReactivatingId(null);
+    }
+  };
+
+  const renderPetCard = (pet: Pet, active: boolean) => {
+    const days = daysRemaining(pet.active_until);
+    const nearExpiry = active && days <= 3;
+
+    return (
+      <div
+        key={pet.id}
+        className={`bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm dark:shadow-slate-900/50 ${!active ? "opacity-60" : ""}`}
+      >
+        <div
+          className="flex gap-3 p-3 cursor-pointer"
+          onClick={() => navigate(`/pet/${pet.id}`)}
+        >
+          <div className="w-20 h-20 rounded-xl bg-slate-100 dark:bg-slate-700 overflow-hidden shrink-0">
+            {pet.image_url
+              ? <img src={pet.image_url} alt={pet.name ?? ""} className="w-full h-full object-cover" />
+              : <div className="w-full h-full flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[32px] text-slate-300 dark:text-slate-500">pets</span>
+                </div>
+            }
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              {active ? (
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${pet.status === "lost" ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
+                  {pet.status === "lost" ? "Perdido" : "Encontrado"}
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+                  Desactivada
+                </span>
+              )}
+            </div>
+            <h3 className="font-bold text-base mt-1 truncate">
+              {pet.status === "lost" ? (pet.name ?? "Sin nombre") : (pet.breed ?? "Sin raza")}
+            </h3>
+            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs mt-0.5">
+              <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18, width: 18, height: 18, lineHeight: 1 }}>location_on</span>
+              <span className="truncate">{pet.location}</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <UserAvatar
+                name={myProfile?.full_name ?? user?.email ?? ""}
+                avatarData={myProfile?.avatar_data}
+                avatarUrl={myProfile?.avatar_url}
+                size={18}
+              />
+              <p className="text-xs text-slate-400 dark:text-slate-500">{formatDate(pet.created_at)}</p>
+            </div>
+            {active && (
+              <p className={`text-[10px] font-semibold mt-1 ${nearExpiry ? "text-amber-500" : "text-slate-400 dark:text-slate-500"}`}>
+                Activa · vence en {days} día{days !== 1 ? "s" : ""}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="border-t border-slate-100 dark:border-slate-700 flex">
+          <button
+            onClick={() => navigate(`/pet/${pet.id}`)}
+            className="flex-1 py-3 text-xs font-semibold text-[#2b9dee] flex items-center justify-center gap-1"
+          >
+            <span className="material-symbols-outlined text-[16px]">visibility</span>
+            Ver detalle
+          </button>
+          <div className="w-px bg-slate-100 dark:bg-slate-700" />
+          {active ? (
+            <button
+              onClick={() => setConfirmId(pet.id)}
+              className="flex-1 py-3 text-xs font-semibold text-red-500 flex items-center justify-center gap-1"
+            >
+              <span className="material-symbols-outlined text-[16px]">delete</span>
+              Eliminar
+            </button>
+          ) : (
+            <button
+              onClick={() => handleReactivate(pet.id)}
+              disabled={reactivatingId === pet.id}
+              className="flex-1 py-3 text-xs font-semibold text-emerald-600 flex items-center justify-center gap-1 disabled:opacity-50"
+            >
+              {reactivatingId === pet.id ? (
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+              ) : (
+                <span className="material-symbols-outlined text-[16px]">refresh</span>
+              )}
+              Reactivar
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-8">
       {/* Header */}
@@ -82,63 +203,27 @@ export default function MyReportsScreen() {
           </div>
         )}
 
-        {pets.map((pet) => (
-          <div key={pet.id} className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm dark:shadow-slate-900/50">
-            <div
-              className="flex gap-3 p-3 cursor-pointer"
-              onClick={() => navigate(`/pet/${pet.id}`)}
-            >
-              <div className="w-20 h-20 rounded-xl bg-slate-100 dark:bg-slate-700 overflow-hidden shrink-0">
-                {pet.image_url
-                  ? <img src={pet.image_url} alt={pet.name ?? ""} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[32px] text-slate-300 dark:text-slate-500">pets</span>
-                    </div>
-                }
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${pet.status === "lost" ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
-                    {pet.status === "lost" ? "Perdido" : "Encontrado"}
-                  </span>
-                </div>
-                <h3 className="font-bold text-base mt-1 truncate">
-                  {pet.status === "lost" ? (pet.name ?? "Sin nombre") : (pet.breed ?? "Sin raza")}
-                </h3>
-                <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs mt-0.5">
-                  <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18, width: 18, height: 18, lineHeight: 1 }}>location_on</span>
-                  <span className="truncate">{pet.location}</span>
-                </div>
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  <UserAvatar
-                    name={myProfile?.full_name ?? user?.email ?? ""}
-                    avatarData={myProfile?.avatar_data}
-                    avatarUrl={myProfile?.avatar_url}
-                    size={18}
-                  />
-                  <p className="text-xs text-slate-400 dark:text-slate-500">{formatDate(pet.created_at)}</p>
-                </div>
-              </div>
-            </div>
-            <div className="border-t border-slate-100 dark:border-slate-700 flex">
-              <button
-                onClick={() => navigate(`/pet/${pet.id}`)}
-                className="flex-1 py-3 text-xs font-semibold text-[#2b9dee] flex items-center justify-center gap-1"
-              >
-                <span className="material-symbols-outlined text-[16px]">visibility</span>
-                Ver detalle
-              </button>
-              <div className="w-px bg-slate-100 dark:bg-slate-700" />
-              <button
-                onClick={() => setConfirmId(pet.id)}
-                className="flex-1 py-3 text-xs font-semibold text-red-500 flex items-center justify-center gap-1"
-              >
-                <span className="material-symbols-outlined text-[16px]">delete</span>
-                Eliminar
-              </button>
-            </div>
-          </div>
-        ))}
+        {(() => {
+          const activePets = pets.filter(isActive);
+          const inactivePets = pets.filter((p) => !isActive(p));
+          return (
+            <>
+              {activePets.map((pet) => renderPetCard(pet, true))}
+              {inactivePets.length > 0 && (
+                <>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      Desactivadas
+                    </span>
+                    <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                  </div>
+                  {inactivePets.map((pet) => renderPetCard(pet, false))}
+                </>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Confirmation dialog */}

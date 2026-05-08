@@ -1,0 +1,58 @@
+<h2>Formas de pin con emojis</h2>
+<p class="subtitle">¿Cuál forma de pin te gusta más? (ejemplos con perro perdido 🐕 en rojo)</p>
+
+<div class="cards">
+  <div class="card" data-choice="classic-pin" onclick="toggleSelect(this)">
+    <div class="card-image" style="display: flex; align-items: center; justify-content: center; height: 120px; background: #f1f5f9;">
+      <svg width="40" height="50" viewBox="0 0 40 50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <path d="M 20 0 C 10 0 2 8 2 18 C 2 30 20 50 20 50 C 20 50 38 30 38 18 C 38 8 30 0 20 0 Z" fill="#dc2626" stroke="white" stroke-width="2"/>
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="24" dy="-2">🐕</text>
+      </svg>
+    </div>
+    <div class="card-body">
+      <h3>Pin clásico</h3>
+      <p>Forma tradicional de marcador con emoji dentro</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="rounded-pin" onclick="toggleSelect(this)">
+    <div class="card-image" style="display: flex; align-items: center; justify-content: center; height: 120px; background: #f1f5f9;">
+      <svg width="40" height="50" viewBox="0 0 40 50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <path d="M 20 2 C 11 2 4 9 4 18 C 4 32 20 48 20 48 C 20 48 36 32 36 18 C 36 9 29 2 20 2 Z" fill="#dc2626" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+        <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-size="24">🐕</text>
+      </svg>
+    </div>
+    <div class="card-body">
+      <h3>Pin redondeado</h3>
+      <p>Forma más suave y moderna de gota</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="shield-pin" onclick="toggleSelect(this)">
+    <div class="card-image" style="display: flex; align-items: center; justify-content: center; height: 120px; background: #f1f5f9;">
+      <svg width="40" height="50" viewBox="0 0 40 50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <path d="M 8 3 L 32 3 L 32 18 C 32 32 20 48 20 48 C 20 48 8 32 8 18 Z" fill="#dc2626" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+        <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-size="24">🐕</text>
+      </svg>
+    </div>
+    <div class="card-body">
+      <h3>Pin escudo</h3>
+      <p>Forma de escudo protector</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="heart-pin" onclick="toggleSelect(this)">
+    <div class="card-image" style="display: flex; align-items: center; justify-content: center; height: 120px; background: #f1f5f9;">
+      <svg width="40" height="50" viewBox="0 0 40 50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <path d="M 20 48 C 20 48 2 28 2 16 C 2 8 8 2 13 2 C 16 2 18 4 20 6 C 22 4 24 2 27 2 C 32 2 38 8 38 16 C 38 28 20 48 20 48 Z" fill="#dc2626" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+        <text x="50%" y="35%" dominant-baseline="middle" text-anchor="middle" font-size="24">🐕</text>
+      </svg>
+    </div>
+    <div class="card-body">
+      <h3>Pin corazón</h3>
+      <p>Forma de corazón para un toque de amor</p>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top: 30px; font-style: italic; color: #64748b;">El color del fondo (rojo/verde) seguiría indicando el estado (perdido/encontrado)</p>

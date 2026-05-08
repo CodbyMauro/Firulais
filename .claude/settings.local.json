@@ -40,7 +40,18 @@
       "PowerShell(cmd /c \"dir C:\\\\Users\\\\mauro\\\\AppData\\\\Local\\\\Android /B\")",
       "Bash(git -C \"c:/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais\" diff 9084402c66f7e8f9e06e2f550f536f08c43e0973 b15b891335b3bbb9d5509de3978807ea0997ea2a)",
       "Bash(tar -xf \"C:/Users/mauro/.claude/projects/c--Users-mauro-OneDrive-Documentos-AntigravityProyects-firulais/8d0baa50-aef1-4f97-8592-65de6e24a8bc/tool-results/webfetch-1777594961987-wkajy6.bin\" -C /tmp/firulais-design)",
-      "Bash(xargs wc *)"
+      "Bash(xargs wc *)",
+      "Bash(git push *)",
+      "Read(//c/Users/mauro/.claude/plugins/cache/superpowers-dev/superpowers/5.0.7/skills/brainstorming/**)",
+      "Bash(bash scripts/start-server.sh --project-dir \"c:\\\\Users\\\\mauro\\\\OneDrive\\\\Documentos\\\\AntigravityProyects\\\\firulais\")",
+      "Bash(xargs cat *)",
+      "Read(//c/Users/mauro/.claude/plugins/cache/superpowers-dev/superpowers/5.0.7/**)",
+      "Bash(bash scripts/start-server.sh --project-dir /c/Users/mauro/OneDrive/Documentos/AntigravityProyects/firulais)",
+      "Read(//c/Users/mauro/**)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(netstat -tuln)",
+      "Bash(npm test *)",
+      "Bash(cd c:\\\\\\\\Users\\\\\\\\mauro\\\\\\\\OneDrive\\\\\\\\Documentos\\\\\\\\AntigravityProyects\\\\\\\\firulais)"
     ],
     "additionalDirectories": [
       "\\tmp"
