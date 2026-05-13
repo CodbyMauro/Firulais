@@ -5,6 +5,7 @@ import L from "leaflet";
 import BottomNav from "../components/BottomNav";
 import { fetchHelpCenters, type HelpCenter } from "../lib/adminService";
 import { useTheme } from "../context/ThemeContext";
+import { foldAccentsContains } from "../lib/foldAccents";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -38,9 +39,8 @@ export default function HelpCentersScreen() {
   }, []);
 
   const filtered = search.trim()
-    ? centers.filter((c) =>
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.address?.toLowerCase().includes(search.toLowerCase())
+    ? centers.filter(
+        (c) => foldAccentsContains(c.name, search) || foldAccentsContains(c.address, search),
       )
     : centers;
 

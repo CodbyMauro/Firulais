@@ -177,53 +177,55 @@ export default function MyReportsScreen() {
         <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center">
           <span className="material-symbols-outlined text-[24px]">arrow_back_ios</span>
         </button>
-        <h2 className="text-lg font-bold flex-1 text-center pr-10">Mis Reportes</h2>
+        <h2 className="text-lg font-bold flex-1 text-center pr-10">Mis reportes</h2>
       </div>
 
-      <div className="px-4 py-4 flex flex-col gap-4">
-        {isLoading && (
-          <div className="flex justify-center py-16">
+      <div className="flex flex-1 flex-col min-h-0 px-4 py-4 gap-4 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex flex-1 w-full min-h-0 items-center justify-center">
             <svg className="animate-spin h-8 w-8 text-[#2b9dee]" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
             </svg>
           </div>
-        )}
+        ) : (
+          <>
+            {pets.length === 0 && (
+              <div className="flex flex-col items-center py-16 text-slate-400 dark:text-slate-500 gap-3">
+                <span className="material-symbols-outlined text-[52px]">pets</span>
+                <p className="text-sm font-medium">No publicaste ningún reporte aún</p>
+                <button
+                  onClick={() => navigate("/report")}
+                  className="mt-2 px-5 py-2.5 bg-[#2b9dee] text-white text-sm font-bold rounded-xl"
+                >
+                  Crear reporte
+                </button>
+              </div>
+            )}
 
-        {!isLoading && pets.length === 0 && (
-          <div className="flex flex-col items-center py-16 text-slate-400 dark:text-slate-500 gap-3">
-            <span className="material-symbols-outlined text-[52px]">pets</span>
-            <p className="text-sm font-medium">No publicaste ningún reporte aún</p>
-            <button
-              onClick={() => navigate("/report")}
-              className="mt-2 px-5 py-2.5 bg-[#2b9dee] text-white text-sm font-bold rounded-xl"
-            >
-              Crear reporte
-            </button>
-          </div>
-        )}
-
-        {(() => {
-          const activePets = pets.filter(isActive);
-          const inactivePets = pets.filter((p) => !isActive(p));
-          return (
-            <>
-              {activePets.map((pet) => renderPetCard(pet, true))}
-              {inactivePets.length > 0 && (
+            {(() => {
+              const activePets = pets.filter(isActive);
+              const inactivePets = pets.filter((p) => !isActive(p));
+              return (
                 <>
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                      Desactivadas
-                    </span>
-                    <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-                  </div>
-                  {inactivePets.map((pet) => renderPetCard(pet, false))}
+                  {activePets.map((pet) => renderPetCard(pet, true))}
+                  {inactivePets.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                        <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                          Desactivadas
+                        </span>
+                        <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                      </div>
+                      {inactivePets.map((pet) => renderPetCard(pet, false))}
+                    </>
+                  )}
                 </>
-              )}
-            </>
-          );
-        })()}
+              );
+            })()}
+          </>
+        )}
       </div>
 
       {/* Confirmation dialog */}

@@ -198,15 +198,22 @@ export default function MapScreen() {
   const CAROUSEL_H = 172;
 
   return (
-    <div className="relative w-full max-w-[430px] lg:max-w-none overflow-hidden [&_.leaflet-bottom]:pb-[calc(12px+env(safe-area-inset-bottom))]" style={{ height: "calc(100dvh - var(--app-top-inset, 0px))" }}>
-      {/* Full-screen map */}
-      <MapContainer
-        center={userPos ?? BA}
-        zoom={13}
-        style={{ height: "calc(100dvh - var(--app-top-inset, 0px))", width: "100%" }}
-        zoomControl={false}
-        attributionControl={false}
-      >
+    <div
+      className={`relative flex min-h-0 w-full flex-col ${
+        Capacitor.isNativePlatform() ? "max-w-none" : "mx-auto max-w-[430px] lg:max-w-none"
+      }`}
+      style={{ height: "calc(100dvh - var(--app-top-inset, 0px))" }}
+    >
+      {/* Solo el tile layer de Leaflet se recorta; overflow-hidden acá rompía el scroll-x del carrusel */}
+      <div className="absolute inset-0 z-0 overflow-hidden [&_.leaflet-bottom]:pb-[calc(12px+env(safe-area-inset-bottom))]">
+        <MapContainer
+          center={userPos ?? BA}
+          zoom={13}
+          className="z-0 h-full w-full"
+          style={{ height: "100%", width: "100%" }}
+          zoomControl={false}
+          attributionControl={false}
+        >
         <TileLayer
           key={theme}
           attribution='&copy; OpenStreetMap contributors &copy; CARTO'
@@ -295,6 +302,7 @@ export default function MapScreen() {
           </Marker>
         ))}
       </MapContainer>
+      </div>
 
       {/* Floating back button */}
       <button
@@ -368,13 +376,13 @@ export default function MapScreen() {
         )}
       </div>
 
-      {/* Bottom carousel */}
+      {/* Bottom carousel (fuera del overflow-hidden del mapa; scroll horizontal íntegro) */}
       <div
-        className="absolute left-0 right-0 z-[1000]"
-        style={{ bottom: 0, height: CAROUSEL_H, paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] min-w-0"
+        style={{ height: CAROUSEL_H, paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {nearbyMarkers.length === 0 ? (
-          <div className="h-full flex items-center justify-center">
+          <div className="pointer-events-auto flex h-full items-center justify-center">
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg px-5 py-3 flex items-center gap-2">
               <span className="material-symbols-outlined text-[20px] text-slate-400">pets</span>
               <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -383,12 +391,12 @@ export default function MapScreen() {
             </div>
           </div>
         ) : (
-          <div className="flex gap-3 px-4 py-3 overflow-x-auto [&::-webkit-scrollbar]:hidden h-full items-center">
+          <div className="pointer-events-auto box-border flex h-full min-w-0 items-center gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain py-3 pl-4 pr-6 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
             {nearbyMarkers.map(({ pet, lat, lng, distance }) => (
               <div
                 key={pet.id}
                 onClick={() => { setFlyTo({ coords: [lat, lng], zoom: 16, trigger: Date.now() }); }}
-                className="shrink-0 w-36 bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
+                className="w-[158px] shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-white shadow-lg transition-transform active:scale-95 dark:bg-slate-800"
               >
                 <div className="w-full h-20 bg-slate-100 dark:bg-slate-700 relative">
                   {pet.image_url
@@ -402,16 +410,17 @@ export default function MapScreen() {
                   </span>
                 </div>
                 <div className="px-2.5 py-2">
-                  <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{pet.name ?? "Sin nombre"}</p>
+                  <p className="truncate text-sm font-bold leading-tight text-slate-900 dark:text-white">{pet.name ?? "Sin nombre"}</p>
                   {distance !== undefined && (
-                    <div className="flex items-center gap-0.5 mt-0.5">
-                      <span className="material-symbols-outlined text-[12px] text-[#2b9dee]">near_me</span>
+                    <div className="mt-0.5 flex min-w-0 items-center gap-0.5 whitespace-nowrap">
+                      <span className="material-symbols-outlined shrink-0 text-[12px] text-[#2b9dee]">near_me</span>
                       <span className="text-[11px] font-semibold text-[#2b9dee]">{formatDistance(distance)}</span>
                     </div>
                   )}
                 </div>
               </div>
             ))}
+            <div className="h-1 shrink-0 basis-6 sm:basis-8" aria-hidden />
           </div>
         )}
       </div>

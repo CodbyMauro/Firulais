@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { foldAccentsContains } from "../lib/foldAccents";
 import BottomNav from "../components/BottomNav";
 
 const FAQS = [
@@ -141,8 +142,8 @@ export default function HelpScreen() {
     items: cat.items.filter(
       (item) =>
         !search.trim() ||
-        item.q.toLowerCase().includes(search.toLowerCase()) ||
-        item.a.toLowerCase().includes(search.toLowerCase()),
+        foldAccentsContains(item.q, search) ||
+        foldAccentsContains(item.a, search),
     ),
   })).filter((cat) => cat.items.length > 0);
 

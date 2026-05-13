@@ -131,6 +131,28 @@ html.native-app .conversation-route {
   min-height: 0;
 }
 
+/* Lista de chats: en nativo no usar 100dvh (el #root ya es más bajo por inset superior → scroll fantasma). */
+html:not(.native-app) .firulais-chat-route {
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+html.native-app .firulais-chat-route {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Home: en nativo encajar en #root; scroll solo en el feed (no en #root) para no cortar header ni tabs. */
+html:not(.native-app) .firulais-home-route {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+}
+html.native-app .firulais-home-route {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* Leaflet popup — estilo moderno sin padding/borde por defecto */
 .firulais-popup .leaflet-popup-content-wrapper {
   padding: 0;

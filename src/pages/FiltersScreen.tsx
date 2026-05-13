@@ -54,7 +54,6 @@ const SPECIES_OPTIONS: {
 }[] = [
   { label: "Perro", value: "dog", Icon: SpeciesIconDog },
   { label: "Gato", value: "cat", Icon: SpeciesIconCat },
-  { label: "Otros", value: "other", materialIcon: "more_horiz" },
 ];
 
 const SIZES = ["Pequeño", "Mediano", "Grande"];
@@ -274,7 +273,7 @@ export default function FiltersScreen() {
         </div>
 
         {/* Distancia máxima */}
-        <div className="px-4 pt-6">
+        <div className="px-4 pt-6 pb-8">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold leading-tight tracking-[-0.015em]">Distancia máxima</h3>
             <span className="text-[#2b9dee] font-bold">{distance} km</span>
@@ -297,33 +296,17 @@ export default function FiltersScreen() {
             <span className="text-xs text-slate-500">50 km</span>
           </div>
         </div>
-
-        {/* Ubicación de referencia */}
-        <h3 className="text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Ubicación de referencia</h3>
-        <div className="px-4 pb-4">
-          <div className="relative h-40 w-full rounded-xl overflow-hidden mb-2 bg-slate-200 dark:bg-slate-700 flex items-center justify-center cursor-pointer">
-            <span className="material-symbols-outlined text-slate-400 text-[48px]">map</span>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[#2b9dee] text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                location_on
-              </span>
-            </div>
-          </div>
-          <p className="pb-6 text-center text-sm text-slate-500 dark:text-slate-400">
-            Tocá para cambiar la ubicación
-          </p>
-        </div>
       </div>
 
       {/* Footer: flujo normal (sin absolute) para no tapar contenido ni chocar con el scroll */}
       <footer
         className="shrink-0 border-t border-slate-100 bg-white px-4 pt-4 dark:border-slate-800 dark:bg-[#101a22]"
-        style={{ paddingBottom: "calc(50px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))" }}
       >
         <button
           type="button"
           onClick={handleApply}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#2b9dee] py-4 text-center font-bold text-white shadow-lg transition-colors hover:bg-[#2b9dee]/90"
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#2b9dee] py-4 text-center font-bold text-white transition-colors hover:bg-[#2b9dee]/90"
         >
           <span>Aplicar Filtros</span>
           <span className="material-symbols-outlined text-[20px]">search</span>

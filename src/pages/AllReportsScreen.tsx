@@ -144,13 +144,13 @@ export default function AllReportsScreen() {
   const totalActiveFilters = activeFilterChips.length + (statusParam ? 1 : 0);
 
   return (
-    <div className="flex flex-col min-h-screen max-w-[430px] lg:max-w-2xl mx-auto bg-[#f6f7f8] dark:bg-[#101a22] font-display text-slate-900 dark:text-slate-100 pb-[calc(3rem+env(safe-area-inset-bottom,0px))] lg:pb-8">
+    <div className="flex min-h-screen w-full min-w-0 max-w-[430px] flex-col overflow-x-hidden bg-[#f6f7f8] font-display text-slate-900 dark:bg-[#101a22] dark:text-slate-100 mx-auto pb-[calc(3rem+env(safe-area-inset-bottom,0px))] lg:max-w-2xl lg:pb-8">
 
       {/* Header sticky */}
       <div className="sticky top-0 z-20 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
 
         {/* Búsqueda */}
-        <div className="flex min-w-0 items-center gap-2 pl-4 pr-5 pt-3 pb-2 sm:gap-3 sm:pr-6">
+        <div className="flex min-w-0 items-center gap-2 px-4 pt-3 pb-2 sm:gap-3">
           <button
             onClick={() => navigate(-1)}
             className="flex size-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 shrink-0 cursor-pointer"
@@ -206,14 +206,14 @@ export default function AllReportsScreen() {
         </div>
 
         {/* Tabs de estado */}
-        <div className="flex gap-1 px-4 pb-2 sm:px-5">
+        <div className="flex min-w-0 gap-1 px-4 pb-2">
           {STATUS_TABS.map(tab => {
             const isActive = statusParam === tab.value;
             return (
               <button
                 key={tab.value}
                 onClick={() => setStatusParam(tab.value)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                   isActive
                     ? "bg-[#2b9dee] text-white shadow-sm shadow-[#2b9dee]/30"
                     : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50"
@@ -233,7 +233,7 @@ export default function AllReportsScreen() {
 
         {/* Chips de filtros activos */}
         {activeFilterChips.length > 0 && (
-          <div className="flex gap-2 px-4 pb-3 overflow-x-auto sm:px-5 [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-0 gap-2 overflow-x-auto px-4 pb-3 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
             {activeFilterChips.map(chip => (
               <ActiveFilterChip
                 key={chip.key}
@@ -253,14 +253,14 @@ export default function AllReportsScreen() {
       </div>
 
       {/* Contador */}
-      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+      <div className="flex min-w-0 items-center justify-between gap-2 px-4 pt-3 pb-2">
+        <p className="min-w-0 text-xs font-semibold text-slate-500 dark:text-slate-400">
           {loading
             ? "Buscando..."
             : <><span className="text-slate-900 dark:text-white font-extrabold">{pets.length}{hasMore ? "+" : ""}</span> reporte{pets.length !== 1 ? "s" : ""}</>
           }
         </p>
-        <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+        <div className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-slate-400">
           <span className="material-symbols-outlined" style={{ fontSize: 13 }}>sort</span>
           Más recientes
         </div>
@@ -269,9 +269,9 @@ export default function AllReportsScreen() {
       {/* Lista */}
       {layout === "grid" ? (
         /* Grid 2 columnas */
-        <div className="grid grid-cols-2 gap-3 px-4">
+        <div className="grid min-w-0 grid-cols-2 gap-3 px-4">
           {loading && Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700">
+            <div key={i} className="min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-800">
               <div className="w-full aspect-square bg-slate-100 dark:bg-slate-700 animate-pulse" />
               <div className="p-2.5 flex flex-col gap-1.5">
                 <div className="h-3 w-2/3 bg-slate-100 dark:bg-slate-700 rounded-full animate-pulse" />
@@ -304,7 +304,7 @@ export default function AllReportsScreen() {
             <div
               key={pet.id}
               onClick={() => navigate(`/pet/${pet.id}`)}
-              className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 cursor-pointer active:scale-[0.98] transition-transform duration-150 hover:shadow-lg"
+              className="min-w-0 cursor-pointer overflow-hidden rounded-2xl border border-slate-100 bg-white transition-transform duration-150 hover:shadow-lg active:scale-[0.98] dark:border-slate-700 dark:bg-slate-800"
             >
               <div className="relative w-full aspect-square bg-slate-100 dark:bg-slate-700">
                 {pet.image_url
@@ -336,7 +336,7 @@ export default function AllReportsScreen() {
         </div>
       ) : (
         /* Lista */
-        <div className="flex flex-col gap-2.5 px-4">
+        <div className="flex min-w-0 flex-col gap-2.5 px-4">
           {loading && Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
 
           {!loading && pets.length === 0 && (

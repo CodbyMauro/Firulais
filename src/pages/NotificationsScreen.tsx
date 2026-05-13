@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
-import { notifications } from "../data/mockData";
+import { useNotifications } from "../context/NotificationsContext";
 
 const iconMap: Record<string, { icon: string; bg: string; color: string }> = {
   match: { icon: "pets", bg: "bg-[#2b9dee]/10 dark:bg-[#2b9dee]/20", color: "text-[#2b9dee]" },
@@ -10,6 +10,7 @@ const iconMap: Record<string, { icon: string; bg: string; color: string }> = {
 
 export default function NotificationsScreen() {
   const navigate = useNavigate();
+  const { items, markAllRead } = useNotifications();
 
   return (
     <div className="relative flex h-auto min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-8">
@@ -23,15 +24,17 @@ export default function NotificationsScreen() {
       <div className="px-4 py-4 flex flex-col gap-3">
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400">HOY</h3>
-          <button className="text-[#2b9dee] text-xs font-bold">Marcar todo leído</button>
+          <button type="button" onClick={markAllRead} className="text-[#2b9dee] text-xs font-bold">
+            Marcar todo leído
+          </button>
         </div>
 
-        {notifications.map((notif) => {
+        {items.map((notif) => {
           const style = iconMap[notif.type];
           return (
             <div
               key={notif.id}
-              className={`flex gap-4 bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm dark:shadow-slate-900/50 border ${notif.read ? "border-slate-100 dark:border-slate-700" : "border-[#2b9dee]/20"}`}
+              className={`flex gap-4 bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm dark:shadow-slate-900/50 border ${notif.effectiveRead ? "border-slate-100 dark:border-slate-700" : "border-[#2b9dee]/20"}`}
             >
               <div className={`w-12 h-12 ${style.bg} rounded-xl flex items-center justify-center shrink-0`}>
                 <span className={`material-symbols-outlined text-[22px] ${style.color}`}>{style.icon}</span>
@@ -39,7 +42,7 @@ export default function NotificationsScreen() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-bold leading-tight">{notif.title}</p>
-                  {!notif.read && <div className="w-2 h-2 bg-[#2b9dee] rounded-full shrink-0 mt-1"></div>}
+                  {!notif.effectiveRead && <div className="w-2 h-2 bg-[#2b9dee] rounded-full shrink-0 mt-1"></div>}
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{notif.message}</p>
                 <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 font-medium">hace {notif.timeAgo}</p>

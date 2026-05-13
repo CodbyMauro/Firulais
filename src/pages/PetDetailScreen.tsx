@@ -122,8 +122,8 @@ export default function PetDetailScreen() {
     Math.round(similarity * 100 * 0.3 + aiScore * 0.7);
 
   if (isLoading) return (
-    <div className="flex items-center justify-center min-h-screen max-w-[430px] lg:max-w-3xl mx-auto bg-white dark:bg-slate-800">
-      <svg className="animate-spin h-8 w-8 text-[#2b9dee]" viewBox="0 0 24 24" fill="none">
+    <div className="mx-auto flex min-h-screen w-full min-w-0 max-w-[430px] flex-1 items-center justify-center bg-white dark:bg-slate-800 lg:max-w-3xl">
+      <svg className="h-8 w-8 animate-spin text-[#2b9dee]" viewBox="0 0 24 24" fill="none" aria-hidden>
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
       </svg>
@@ -131,7 +131,7 @@ export default function PetDetailScreen() {
   );
 
   if (!pet) return (
-    <div className="flex flex-col items-center justify-center min-h-screen max-w-[430px] lg:max-w-3xl mx-auto bg-white dark:bg-slate-800 gap-4">
+    <div className="mx-auto flex min-h-screen w-full min-w-0 max-w-[430px] flex-1 flex-col items-center justify-center gap-4 bg-white dark:bg-slate-800 lg:max-w-3xl">
       <span className="material-symbols-outlined text-[48px] text-slate-300 dark:text-slate-600">pets</span>
       <p className="text-slate-500 dark:text-slate-400 text-sm">Mascota no encontrada</p>
       <button onClick={() => navigate("/home")} className="text-[#2b9dee] font-bold text-sm">
@@ -581,7 +581,6 @@ export default function PetDetailScreen() {
               className="flex-1 h-[54px] rounded-[18px] font-black text-sm text-white flex items-center justify-center gap-2 border-0"
               style={{
                 background: `linear-gradient(135deg, ${PRIMARY}, rgba(43,157,238,0.7))`,
-                boxShadow: `0 8px 20px rgba(43,157,238,0.35)`,
               }}
             >
               <span

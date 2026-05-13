@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { foldAccents } from "./foldAccents";
 
 export interface Pet {
   id: string;
@@ -71,8 +72,11 @@ export async function fetchPetsPage(options: FetchPetsOptions): Promise<{ pets: 
     query = query.gte("created_at", since);
   }
   if (search?.trim()) {
-    const q = search.trim();
-    query = query.or(`name.ilike.%${q}%,breed.ilike.%${q}%,color.ilike.%${q}%,location.ilike.%${q}%`);
+    const folded = foldAccents(search.trim());
+    if (folded) {
+      // Columna generada search_fold (ver migración 20260513): unaccent + lower en DB
+      query = query.ilike("search_fold", `%${folded}%`);
+    }
   }
 
   const { data, error } = await query;
