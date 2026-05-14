@@ -41,7 +41,10 @@ export default function PremiumScreen() {
 
   const paymentStatus = searchParams.get("status");
 
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  useEffect(() => {
+    const el = document.querySelector(".firulais-premium-scroll");
+    el?.scrollTo(0, 0);
+  }, []);
 
   // Verificar si ya es premium
   useEffect(() => {
@@ -89,11 +92,10 @@ export default function PremiumScreen() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen max-w-[430px] lg:max-w-3xl mx-auto bg-white dark:bg-slate-800 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-8">
-
-      {/* Header */}
-      <div className="flex items-center px-4 pt-4 pb-2">
+    <div className="firulais-premium-route flex flex-col overflow-hidden w-full max-w-[430px] lg:max-w-3xl mx-auto bg-white dark:bg-slate-800 font-display text-slate-900 dark:text-white">
+      <div className="shrink-0 flex items-center px-4 pt-4 pb-2">
         <button
+          type="button"
           onClick={() => navigate(-1)}
           className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700"
         >
@@ -101,27 +103,25 @@ export default function PremiumScreen() {
         </button>
       </div>
 
-      {/* Estado: pago exitoso */}
-      {paymentStatus === "approved" && (
-        <div className="mx-4 mb-4 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 flex items-center gap-3">
-          <span className="material-symbols-outlined text-emerald-500 text-[28px]">check_circle</span>
-          <div>
-            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">¡Pago aprobado!</p>
-            <p className="text-xs text-emerald-600 dark:text-emerald-500">Tu cuenta Premium ya está activa.</p>
+      <div className="firulais-premium-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain px-4 gap-6 pb-mobile-tab lg:pb-8">
+        {paymentStatus === "approved" && (
+          <div className="shrink-0 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 flex items-center gap-3">
+            <span className="material-symbols-outlined text-emerald-500 text-[28px]">check_circle</span>
+            <div>
+              <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">¡Pago aprobado!</p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-500">Tu cuenta Premium ya está activa.</p>
+            </div>
           </div>
-        </div>
-      )}
-      {paymentStatus === "rejected" && (
-        <div className="mx-4 mb-4 p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-center gap-3">
-          <span className="material-symbols-outlined text-red-500 text-[28px]">cancel</span>
-          <div>
-            <p className="text-sm font-bold text-red-700 dark:text-red-400">Pago rechazado</p>
-            <p className="text-xs text-red-600 dark:text-red-500">Intentá de nuevo o usá otro medio de pago.</p>
+        )}
+        {paymentStatus === "rejected" && (
+          <div className="shrink-0 p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-center gap-3">
+            <span className="material-symbols-outlined text-red-500 text-[28px]">cancel</span>
+            <div>
+              <p className="text-sm font-bold text-red-700 dark:text-red-400">Pago rechazado</p>
+              <p className="text-xs text-red-600 dark:text-red-500">Intentá de nuevo o usá otro medio de pago.</p>
+            </div>
           </div>
-        </div>
-      )}
-
-      <div className="flex-1 px-4 flex flex-col gap-6 pb-4">
+        )}
 
         {/* Hero */}
         <div className="flex flex-col items-center text-center gap-3 py-2">
@@ -165,6 +165,7 @@ export default function PremiumScreen() {
                 return (
                   <button
                     key={key}
+                    type="button"
                     onClick={() => setSelectedPlan(key)}
                     className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
                       active
@@ -197,9 +198,9 @@ export default function PremiumScreen() {
               })}
             </div>
 
-            {/* CTA */}
             <div className="flex flex-col gap-2">
               <button
+                type="button"
                 onClick={handleSubscribe}
                 disabled={loading}
                 className="w-full h-14 bg-[#2b9dee] text-white rounded-2xl font-bold text-base shadow-lg shadow-[#2b9dee]/25 flex items-center justify-center gap-2 disabled:opacity-60"
@@ -221,9 +222,9 @@ export default function PremiumScreen() {
           </>
         )}
 
-        {/* Ya es premium: botón volver */}
         {isPremium && (
           <button
+            type="button"
             onClick={() => navigate(-1)}
             className="w-full h-14 bg-[#2b9dee] text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
           >
@@ -232,8 +233,7 @@ export default function PremiumScreen() {
           </button>
         )}
 
-        {/* Legal */}
-        <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 leading-relaxed">
+        <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 leading-relaxed pb-2">
           Al suscribirte aceptás los Términos y Condiciones de Firulais.
           El cobro se procesa a través de MercadoPago. Podés cancelar tu suscripción en cualquier momento.
         </p>

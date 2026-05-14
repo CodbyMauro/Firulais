@@ -326,7 +326,7 @@ export default function ChatScreen() {
         })();
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col bg-[#f6f7f8] pb-mobile-tab font-display text-slate-900 dark:bg-slate-900 dark:text-white lg:max-w-none lg:pb-0">
+    <div className="firulais-chat-route relative mx-auto flex w-full max-w-[430px] flex-col bg-[#f6f7f8] pb-mobile-tab font-display text-slate-900 dark:bg-slate-900 dark:text-white lg:max-w-none lg:pb-0">
       <div className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
         {selectionMode ? (
           <>

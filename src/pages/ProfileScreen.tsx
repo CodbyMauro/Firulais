@@ -42,7 +42,7 @@ export default function ProfileScreen() {
     .split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
 
   const menuItems = [
-    { icon: "history",       label: "Mis Reportes",   desc: "Ver todos tus reportes",     action: () => navigate("/my-reports") },
+    { icon: "history",       label: "Mis reportes",   desc: "Ver todos tus reportes",     action: () => navigate("/my-reports") },
     { icon: "notifications", label: "Notificaciones",  desc: "Alertas y avisos",            action: () => navigate("/notifications") },
   ];
 

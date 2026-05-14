@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import { useMenu } from "../context/MenuContext";
+import { useNotifications } from "../context/NotificationsContext";
 import { usePets } from "../hooks/usePets";
+import { foldAccentsContains } from "../lib/foldAccents";
 
 const CATEGORIES = [
   { icon: "near_me", label: "Cerca", bg: "bg-[#2b9dee]/10", color: "text-[#2b9dee]", path: "/map" },
@@ -15,16 +17,19 @@ const CATEGORIES = [
 export default function HomeScreen() {
   const navigate = useNavigate();
   const { openMenu } = useMenu();
+  const { unreadCount } = useNotifications();
   const { pets, isLoading } = usePets();
   const [search, setSearch] = useState("");
 
   const filteredPets = search.trim()
     ? pets.filter((p) => {
-      const q = search.toLowerCase();
+      const q = search.trim();
       return (
-        p.breed?.toLowerCase().includes(q) ||
-        p.color?.toLowerCase().includes(q) ||
-        p.location?.toLowerCase().includes(q)
+        foldAccentsContains(p.name, q) ||
+        foldAccentsContains(p.breed, q) ||
+        foldAccentsContains(p.color, q) ||
+        foldAccentsContains(p.size, q) ||
+        foldAccentsContains(p.location, q)
       );
     })
     : pets;
@@ -38,19 +43,31 @@ export default function HomeScreen() {
   };
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full max-w-[430px] lg:max-w-none mx-auto flex-col bg-white dark:bg-slate-800 font-display text-slate-900 dark:text-white shadow-2xl lg:shadow-none dark:shadow-slate-900/50 overflow-x-hidden">
+    <div className="firulais-home-route relative mx-auto flex w-full min-w-0 max-w-[430px] flex-col overflow-hidden bg-white font-display text-slate-900 shadow-2xl dark:bg-slate-800 dark:text-white dark:shadow-slate-900/50 lg:max-w-none lg:shadow-none">
 
-      {/* Header */}
-      <div className="flex shrink-0 items-center bg-white dark:bg-slate-800 px-4 py-3 justify-between sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+      {/* Header (no sticky: el scroll es solo del feed; así no sube bajo la status bar ni “salta”) */}
+      <div className="flex shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
         <button onClick={openMenu} className="lg:hidden flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700">
           <span className="material-symbols-outlined text-[22px] text-slate-600 dark:text-slate-300">menu</span>
         </button>
         <h2 className="text-[17px] font-extrabold tracking-tight flex-1 text-center">Inicio</h2>
         <button
-          className="flex size-10 items-center justify-center rounded-xl overflow-hidden text-[#2b9dee]"
-          onClick={() => navigate("/profile")}
+          type="button"
+          className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700"
+          onClick={() => navigate("/notifications")}
+          aria-label={unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : "Notificaciones"}
         >
-          <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
+          <span
+            className={`material-symbols-outlined text-[22px] ${unreadCount > 0 ? "text-[#2b9dee]" : "text-slate-600 dark:text-slate-300"}`}
+            style={{ fontVariationSettings: unreadCount > 0 ? "'FILL' 1" : undefined }}
+          >
+            notifications
+          </span>
+          {unreadCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </button>
       </div>
 
@@ -102,10 +119,10 @@ export default function HomeScreen() {
       {/* Divider */}
       <div className="h-2.5 bg-slate-100 dark:bg-slate-900 w-full shrink-0" />
 
-      {/* Feed */}
-      <div className="flex flex-1 flex-col min-h-0 bg-[#f6f7f8] dark:bg-slate-900 pb-mobile-tab lg:pb-8">
-        <div className="flex shrink-0 items-center justify-between px-4 pt-3 pb-3">
-          <div>
+      {/* Feed: única zona con scroll vertical (evita scroll en #root que recortaba header y final) */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain bg-[#f6f7f8] pb-mobile-tab dark:bg-slate-900 lg:pb-8">
+        <div className="flex min-w-0 shrink-0 items-center justify-between gap-2 px-4 pb-3 pt-3">
+          <div className="min-w-0">
             <h2 className="text-[18px] font-extrabold tracking-tight text-slate-900 dark:text-white">Reportes recientes</h2>
             {!isLoading && (
               <p className="text-[11.5px] text-slate-400 mt-0.5">En tu zona · {filteredPets.length} activos</p>
@@ -113,7 +130,7 @@ export default function HomeScreen() {
           </div>
           <button
             onClick={() => navigate("/all-reports")}
-            className="flex items-center gap-1 text-[12.5px] font-bold text-[#2b9dee]"
+            className="flex shrink-0 items-center gap-1 text-[12.5px] font-bold text-[#2b9dee]"
           >
             Ver todos
             <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
@@ -133,12 +150,12 @@ export default function HomeScreen() {
             <p className="text-sm font-medium">No hay reportes aún</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-4">
+          <div className="grid min-w-0 grid-cols-2 gap-3 px-4 lg:grid-cols-3 xl:grid-cols-4">
             {filteredPets.slice(0, 10).map((pet) => (
               <div
                 key={pet.id}
                 onClick={() => navigate(`/pet/${pet.id}`)}
-                className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 cursor-pointer active:scale-[0.98] transition-transform duration-150 hover:shadow-lg"
+                className="min-w-0 cursor-pointer overflow-hidden rounded-2xl border border-slate-100 bg-white transition-transform duration-150 hover:shadow-lg active:scale-[0.98] dark:border-slate-700 dark:bg-slate-800"
               >
                 <div className="relative w-full aspect-square bg-slate-100 dark:bg-slate-700">
                   {pet.image_url

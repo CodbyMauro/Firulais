@@ -20,7 +20,7 @@ export default function HappyEndingsScreen() {
         <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center">
           <span className="material-symbols-outlined text-[24px]">arrow_back_ios</span>
         </button>
-        <h2 className="text-lg font-bold flex-1 text-center pr-10">Finales Felices</h2>
+        <h2 className="text-lg font-bold flex-1 text-center pr-10">Finales felices</h2>
       </div>
 
       <div className="px-4 py-5">

@@ -122,8 +122,8 @@ export default function PetDetailScreen() {
     Math.round(similarity * 100 * 0.3 + aiScore * 0.7);
 
   if (isLoading) return (
-    <div className="flex items-center justify-center min-h-screen max-w-[430px] lg:max-w-3xl mx-auto bg-white dark:bg-slate-800">
-      <svg className="animate-spin h-8 w-8 text-[#2b9dee]" viewBox="0 0 24 24" fill="none">
+    <div className="mx-auto flex min-h-screen w-full min-w-0 max-w-[430px] flex-1 items-center justify-center bg-white dark:bg-slate-800 lg:max-w-3xl">
+      <svg className="h-8 w-8 animate-spin text-[#2b9dee]" viewBox="0 0 24 24" fill="none" aria-hidden>
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
       </svg>
@@ -131,7 +131,7 @@ export default function PetDetailScreen() {
   );
 
   if (!pet) return (
-    <div className="flex flex-col items-center justify-center min-h-screen max-w-[430px] lg:max-w-3xl mx-auto bg-white dark:bg-slate-800 gap-4">
+    <div className="mx-auto flex min-h-screen w-full min-w-0 max-w-[430px] flex-1 flex-col items-center justify-center gap-4 bg-white dark:bg-slate-800 lg:max-w-3xl">
       <span className="material-symbols-outlined text-[48px] text-slate-300 dark:text-slate-600">pets</span>
       <p className="text-slate-500 dark:text-slate-400 text-sm">Mascota no encontrada</p>
       <button onClick={() => navigate("/home")} className="text-[#2b9dee] font-bold text-sm">
@@ -246,9 +246,10 @@ export default function PetDetailScreen() {
         <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-600 mx-auto mt-3 mb-5" />
 
         {/* stats */}
-        <div className="grid grid-cols-3 gap-2.5 mb-4">
+        <div className="grid grid-cols-2 gap-2.5 mb-4 sm:grid-cols-4">
           {[
             { label: "Raza",  value: pet.breed || "—", icon: "pets" },
+            { label: "Tamaño", value: (pet.size ?? "").trim() || "—", icon: "straighten" },
             { label: "Edad",  value: (pet.age ?? "").trim() || "—", icon: "calendar_month" },
             { label: "Color", value: pet.color || "—", icon: "palette" },
           ].map(stat => (
@@ -495,54 +496,56 @@ export default function PetDetailScreen() {
               </span>
               <span className="text-[13px] font-black text-slate-800 dark:text-white">Última ubicación</span>
             </div>
-            <div
-              className="relative h-[120px]"
-              style={{ background: "linear-gradient(120deg, #e0f2fe, #ecfccb)" }}
-            >
-              {/* grid pattern */}
+            <div className="p-3 bg-[#f8fafc] dark:bg-slate-800/80">
               <div
-                className="absolute inset-0 opacity-50"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-                  backgroundSize: "22px 22px",
-                }}
-              />
-              {/* pin */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[65%]">
+                className="relative h-[128px] overflow-hidden rounded-xl ring-1 ring-slate-200/80 dark:ring-slate-600/80"
+                style={{ background: "linear-gradient(120deg, #e0f2fe, #ecfccb)" }}
+              >
+                {/* grid pattern */}
                 <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center"
-                  style={{ background: PRIMARY, boxShadow: `0 4px 14px rgba(43,157,238,0.45)` }}
+                  className="absolute inset-0 opacity-50"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
+                    backgroundSize: "22px 22px",
+                  }}
+                />
+                {/* pin */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[65%]">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center"
+                    style={{ background: PRIMARY, boxShadow: `0 4px 14px rgba(43,157,238,0.45)` }}
+                  >
+                    <span
+                      className="material-symbols-outlined text-[18px] text-white"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      pets
+                    </span>
+                  </div>
+                  <div
+                    className="w-2 h-2 rounded-full mx-auto -mt-0.5 opacity-35"
+                    style={{ background: PRIMARY }}
+                  />
+                </div>
+                {/* ver en mapa */}
+                <button
+                  onClick={() => navigate("/map")}
+                  className="absolute bottom-2.5 right-2.5 flex items-center gap-1 text-[11px] font-bold text-slate-700 rounded-xl px-2.5 py-1.5 shadow-sm"
+                  style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(4px)" }}
                 >
                   <span
-                    className="material-symbols-outlined text-[18px] text-white"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
+                    className="material-symbols-outlined text-[12px] text-[#2b9dee]"
+                    style={{ fontVariationSettings: "'FILL' 0" }}
                   >
-                    pets
+                    open_in_new
                   </span>
-                </div>
-                <div
-                  className="w-2 h-2 rounded-full mx-auto -mt-0.5 opacity-35"
-                  style={{ background: PRIMARY }}
-                />
+                  Ver en mapa
+                </button>
               </div>
-              {/* ver en mapa */}
-              <button
-                onClick={() => navigate("/map")}
-                className="absolute bottom-2 right-2 flex items-center gap-1 text-[11px] font-bold text-slate-700 rounded-xl px-2.5 py-1.5 shadow-sm"
-                style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(4px)" }}
-              >
-                <span
-                  className="material-symbols-outlined text-[12px] text-[#2b9dee]"
-                  style={{ fontVariationSettings: "'FILL' 0" }}
-                >
-                  open_in_new
-                </span>
-                Ver en mapa
-              </button>
             </div>
-            <div className="px-4 py-2.5 bg-white dark:bg-slate-800">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{pet.location}</p>
+            <div className="border-t border-slate-100 dark:border-slate-700 px-4 py-3 bg-white dark:bg-slate-800">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 leading-relaxed">{pet.location}</p>
             </div>
           </div>
         )}
@@ -581,7 +584,6 @@ export default function PetDetailScreen() {
               className="flex-1 h-[54px] rounded-[18px] font-black text-sm text-white flex items-center justify-center gap-2 border-0"
               style={{
                 background: `linear-gradient(135deg, ${PRIMARY}, rgba(43,157,238,0.7))`,
-                boxShadow: `0 8px 20px rgba(43,157,238,0.35)`,
               }}
             >
               <span

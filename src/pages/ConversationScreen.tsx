@@ -169,7 +169,7 @@ export default function ConversationScreen() {
       {/* Input */}
       <form
         onSubmit={handleSend}
-        className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700"
+        className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-[max(0.75rem,24px,env(safe-area-inset-bottom,0px))] bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700"
       >
         <input
           className="flex-1 h-11 rounded-full bg-slate-100 dark:bg-slate-700 px-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"

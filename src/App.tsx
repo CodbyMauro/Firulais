@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { MenuProvider } from "./context/MenuContext";
+import { NotificationsProvider } from "./context/NotificationsContext";
 import HamburgerMenu from "./components/HamburgerMenu";
 import SideNav from "./components/SideNav";
 import SplashScreen from "./pages/SplashScreen";
@@ -80,6 +81,7 @@ export default function App() {
     <ThemeProvider>
     <AuthProvider>
     <MenuProvider>
+    <NotificationsProvider>
     <BrowserRouter>
       <NativeKeyboardBindings />
       <div className="route-outlet-grow">
@@ -96,6 +98,7 @@ export default function App() {
       </Routes>
       </div>
     </BrowserRouter>
+    </NotificationsProvider>
     </MenuProvider>
     </AuthProvider>
     </ThemeProvider>

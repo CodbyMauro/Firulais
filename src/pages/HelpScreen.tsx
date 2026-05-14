@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { foldAccentsContains } from "../lib/foldAccents";
 import BottomNav from "../components/BottomNav";
 
 const FAQS = [
@@ -141,8 +142,8 @@ export default function HelpScreen() {
     items: cat.items.filter(
       (item) =>
         !search.trim() ||
-        item.q.toLowerCase().includes(search.toLowerCase()) ||
-        item.a.toLowerCase().includes(search.toLowerCase()),
+        foldAccentsContains(item.q, search) ||
+        foldAccentsContains(item.a, search),
     ),
   })).filter((cat) => cat.items.length > 0);
 
@@ -158,14 +159,14 @@ export default function HelpScreen() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-8">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
+    <div className="firulais-help-route relative mx-auto flex w-full max-w-[430px] lg:max-w-3xl flex-col overflow-hidden bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white">
+      {/* Header fijo; el scroll va solo en el cuerpo (evita que lo último quede bajo la tab bar). */}
+      <div className="sticky top-0 z-10 shrink-0 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
         <div className="flex items-center p-4 pb-3 justify-between">
           <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center">
             <span className="material-symbols-outlined text-[24px]">arrow_back_ios</span>
           </button>
-          <h2 className="text-lg font-bold flex-1 text-center pr-10">Ayuda y Soporte</h2>
+          <h2 className="text-lg font-bold flex-1 text-center pr-10">Ayuda y soporte</h2>
         </div>
         {/* Search */}
         <div className="px-4 pb-3">
@@ -186,7 +187,7 @@ export default function HelpScreen() {
         </div>
       </div>
 
-      <div className="px-4 py-5 flex flex-col gap-5">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain px-4 py-5 gap-5 pb-mobile-tab lg:pb-8">
 
         {/* Hero */}
         {!search && (

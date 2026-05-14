@@ -291,7 +291,7 @@ export default function ReportScreen() {
         />
       )}
 
-      <div className="relative flex h-auto min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-10">
+      <div className="relative flex h-auto w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-14 lg:pb-10">
         <div className="flex items-center p-4 pb-2 justify-between bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
           <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center">
             <span className="material-symbols-outlined text-[24px]">arrow_back_ios</span>
@@ -375,8 +375,18 @@ export default function ReportScreen() {
             <div className={`grid gap-3 ${type === "lost" ? "grid-cols-2" : "grid-cols-1"}`}>
               {type === "lost" && (
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Edad aproximada</span>
-                  <input className={inputClass} placeholder="Ej: 2 años" value={age} onChange={(e) => setAge(e.target.value)} />
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Edad aproximada (años)</span>
+                  <input
+                    className={inputClass}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="off"
+                    placeholder="Ej: 2"
+                    maxLength={3}
+                    value={age}
+                    onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 3))}
+                  />
                 </label>
               )}
               <label className="flex flex-col gap-1.5">

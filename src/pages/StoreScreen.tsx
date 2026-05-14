@@ -27,9 +27,9 @@ export default function StoreScreen() {
   const showCenteredPlaceholder = isLoading || filtered.length === 0;
 
   return (
-    <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-8">
-      {/* Cabecera + pills: un solo bloque y un solo borde inferior (evita línea entre título y pills) */}
-      <div className="sticky top-0 z-10 border-b border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-800">
+    <div className="firulais-store-route relative flex w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col overflow-hidden bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white">
+      {/* Cabecera + pills fijos; el scroll va en el cuerpo. */}
+      <div className="sticky top-0 z-10 shrink-0 border-b border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-800">
         <div className="flex items-center justify-between p-4 pb-2">
           <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center">
             <span className="material-symbols-outlined text-[24px]">arrow_back_ios</span>
@@ -56,7 +56,7 @@ export default function StoreScreen() {
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-5 px-4 pb-4 pt-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain px-4 pt-4 gap-5 pb-mobile-tab lg:pb-8">
         {/* Impact banner */}
         <div className="shrink-0 rounded-2xl border border-[#2b9dee]/20 bg-[#2b9dee]/10 p-5 dark:bg-[#2b9dee]/20">
           <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#2b9dee]">
@@ -69,9 +69,7 @@ export default function StoreScreen() {
           </p>
         </div>
 
-        <div
-          className={`flex min-h-0 flex-1 flex-col gap-4 ${showCenteredPlaceholder ? "justify-center" : ""}`}
-        >
+        <div className={`flex flex-col gap-4 ${showCenteredPlaceholder ? "min-h-[40vh] flex-1 justify-center" : ""}`}>
           {isLoading && (
             <div className="flex justify-center">
               <svg className="h-8 w-8 animate-spin text-[#2b9dee]" viewBox="0 0 24 24" fill="none">
@@ -88,44 +86,43 @@ export default function StoreScreen() {
             </div>
           )}
 
-          {/* Product grid */}
           {filtered.length > 0 && (
             <div className="grid grid-cols-2 gap-4">
-            {filtered.map((product) => (
-              <div key={product.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden shadow-sm dark:shadow-slate-900/50">
-                <div className="aspect-square w-full bg-slate-200 dark:bg-slate-600 relative overflow-hidden">
-                  {product.image_url
-                    ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[40px] text-slate-300 dark:text-slate-500">storefront</span>
-                      </div>
-                  }
-                </div>
-                <div className="p-3">
-                  {product.category && (
-                    <p className="text-[10px] font-bold text-[#2b9dee] uppercase">{product.category}</p>
-                  )}
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm mt-0.5 line-clamp-1">{product.name}</h3>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="font-extrabold text-[#2b9dee]">{product.price_label ?? ""}</span>
-                    {product.link_url ? (
-                      <a
-                        href={product.link_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1.5 rounded-xl bg-[#2b9dee] text-white flex items-center justify-center"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                      </a>
-                    ) : (
-                      <button className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                        <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
-                      </button>
+              {filtered.map((product) => (
+                <div key={product.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden shadow-sm dark:shadow-slate-900/50">
+                  <div className="aspect-square w-full bg-slate-200 dark:bg-slate-600 relative overflow-hidden">
+                    {product.image_url
+                      ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[40px] text-slate-300 dark:text-slate-500">storefront</span>
+                        </div>
+                    }
+                  </div>
+                  <div className="p-3">
+                    {product.category && (
+                      <p className="text-[10px] font-bold text-[#2b9dee] uppercase">{product.category}</p>
                     )}
+                    <h3 className="font-bold text-slate-900 dark:text-white text-sm mt-0.5 line-clamp-1">{product.name}</h3>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="font-extrabold text-[#2b9dee]">{product.price_label ?? ""}</span>
+                      {product.link_url ? (
+                        <a
+                          href={product.link_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-xl bg-[#2b9dee] text-white flex items-center justify-center"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                        </a>
+                      ) : (
+                        <button type="button" className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                          <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
             </div>
           )}
         </div>
