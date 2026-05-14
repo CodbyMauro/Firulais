@@ -82,10 +82,10 @@ export default function MyReportsScreen() {
     return (
       <div
         key={pet.id}
-        className={`bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm dark:shadow-slate-900/50 ${!active ? "opacity-60" : ""}`}
+        className={`shrink-0 bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm dark:shadow-slate-900/50 ${!active ? "opacity-60" : ""}`}
       >
         <div
-          className="flex gap-3 p-3 cursor-pointer"
+          className="flex items-start gap-3 p-3 cursor-pointer"
           onClick={() => navigate(`/pet/${pet.id}`)}
         >
           <div className="w-20 h-20 rounded-xl bg-slate-100 dark:bg-slate-700 overflow-hidden shrink-0">
@@ -96,26 +96,26 @@ export default function MyReportsScreen() {
                 </div>
             }
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
               {active ? (
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${pet.status === "lost" ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
+                <span className={`inline-flex shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full leading-normal ${pet.status === "lost" ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
                   {pet.status === "lost" ? "Perdido" : "Encontrado"}
                 </span>
               ) : (
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+                <span className="inline-flex shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full leading-normal bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
                   Desactivada
                 </span>
               )}
             </div>
-            <h3 className="font-bold text-base mt-1 truncate">
+            <h3 className="font-bold text-base leading-snug truncate text-slate-900 dark:text-white">
               {pet.status === "lost" ? (pet.name ?? "Sin nombre") : (pet.breed ?? "Sin raza")}
             </h3>
-            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs mt-0.5">
+            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
               <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18, width: 18, height: 18, lineHeight: 1 }}>location_on</span>
               <span className="truncate">{pet.location}</span>
             </div>
-            <div className="flex items-center gap-1.5 mt-1.5">
+            <div className="flex items-center gap-1.5">
               <UserAvatar
                 name={myProfile?.full_name ?? user?.email ?? ""}
                 avatarData={myProfile?.avatar_data}
@@ -173,7 +173,7 @@ export default function MyReportsScreen() {
   return (
     <div className="relative flex min-h-screen w-full max-w-[430px] lg:max-w-3xl mx-auto flex-col bg-[#f6f7f8] dark:bg-slate-900 font-display text-slate-900 dark:text-white pb-mobile-tab lg:pb-8">
       {/* Header */}
-      <div className="flex items-center p-4 pb-2 justify-between bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
+      <div className="flex shrink-0 items-center p-4 pb-2 justify-between bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
         <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center">
           <span className="material-symbols-outlined text-[24px]">arrow_back_ios</span>
         </button>
@@ -211,7 +211,7 @@ export default function MyReportsScreen() {
                   {activePets.map((pet) => renderPetCard(pet, true))}
                   {inactivePets.length > 0 && (
                     <>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex shrink-0 items-center gap-2 mt-2">
                         <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
                         <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                           Desactivadas

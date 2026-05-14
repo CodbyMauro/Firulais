@@ -1,12 +1,20 @@
 import { supabase } from "./supabase";
 import { foldAccents } from "./foldAccents";
 
+/** Valores guardados en `pets.size` y usados en reportes / filtros. */
+export const PET_SIZES = ["Pequeña", "Mediana", "Grande"] as const;
+export type PetSize = (typeof PET_SIZES)[number];
+
 export interface Pet {
   id: string;
   name: string | null;
   status: "lost" | "found";
+  /** dog | cat cuando existe en DB */
+  species?: string | null;
   breed: string | null;
   age: string | null;
+  /** Pequeña | Mediana | Grande — solo si existe columna `size` en DB */
+  size?: string | null;
   color: string | null;
   description: string | null;
   location: string | null;
@@ -30,7 +38,9 @@ export async function fetchPets(): Promise<Pet[]> {
   return data as Pet[];
 }
 
-const PAGE_SIZE = 10;
+export const PUBLIC_PET_PAGE_SIZE = 10;
+
+const PAGE_SIZE = PUBLIC_PET_PAGE_SIZE;
 
 const CAT_BREEDS = [
   "Gato común / Europeo", "Siamés", "Persa", "Maine Coon", "Bengalí", "Ragdoll", "Angora",
@@ -42,6 +52,22 @@ const DOG_BREEDS = [
   "Pug / Carlino", "Border Collie", "Cocker Spaniel", "Doberman",
   "Pitbull / Am. Stafford", "Schnauzer",
 ];
+
+/** Filtro ?species=dog|cat (misma idea que el formulario de reporte + columna `species`). */
+export function matchUrlSpeciesFilter(pet: Pet, species: "dog" | "cat" | ""): boolean {
+  if (!species) return true;
+  if (species === "cat") {
+    if (pet.species === "cat") return true;
+    if (pet.species === "dog") return false;
+    return CAT_BREEDS.includes(pet.breed ?? "");
+  }
+  if (species === "dog") {
+    if (pet.species === "dog") return true;
+    if (pet.species === "cat") return false;
+    return DOG_BREEDS.includes(pet.breed ?? "");
+  }
+  return true;
+}
 
 export interface FetchPetsOptions {
   page: number;
@@ -65,8 +91,13 @@ export async function fetchPetsPage(options: FetchPetsOptions): Promise<{ pets: 
     .gt("active_until", new Date().toISOString());
 
   if (status) query = query.eq("status", status);
-  if (species === "cat") query = query.in("breed", CAT_BREEDS);
-  else if (species === "dog") query = query.in("breed", DOG_BREEDS);
+  if (species === "cat") {
+    const inList = CAT_BREEDS.map(b => `"${String(b).replace(/"/g, '""')}"`).join(",");
+    query = query.or(`species.eq.cat,and(species.is.null,breed.in.(${inList}))`);
+  } else if (species === "dog") {
+    const inList = DOG_BREEDS.map(b => `"${String(b).replace(/"/g, '""')}"`).join(",");
+    query = query.or(`species.eq.dog,and(species.is.null,breed.in.(${inList}))`);
+  }
   if (days) {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
     query = query.gte("created_at", since);

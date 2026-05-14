@@ -1,6 +1,7 @@
 import type { FC, SVGProps } from "react";
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { PET_SIZES } from "../lib/petsService";
 
 /** Siluetas claras perro/gato (trazos inspirados en Lucide ISC). */
 function SpeciesIconDog(props: SVGProps<SVGSVGElement>) {
@@ -56,8 +57,6 @@ const SPECIES_OPTIONS: {
   { label: "Gato", value: "cat", Icon: SpeciesIconCat },
 ];
 
-const SIZES = ["Pequeño", "Mediano", "Grande"];
-
 const COLORS = [
   { label: "Negro",   hex: "#1a1a1a" },
   { label: "Blanco",  hex: "#ffffff", border: true },
@@ -67,15 +66,20 @@ const COLORS = [
   { label: "Naranja", hex: "#f97316" },
 ];
 
+type FiltersLocationState = { backToAllReports?: string };
+
 export default function FiltersScreen() {
   const navigate = useNavigate();
+  const { state } = useLocation();
   const [searchParams] = useSearchParams();
+  const backToAllReports =
+    (state as FiltersLocationState | null)?.backToAllReports ?? "/all-reports";
 
   // Inicializar desde params actuales
   const [selectedSpecies, setSelectedSpecies] = useState<string>(
     searchParams.get("species") ?? ""
   );
-  const [selectedSizes,  setSelectedSizes]  = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(searchParams.getAll("size"));
   const [selectedColors, setSelectedColors] = useState<string[]>(
     searchParams.get("color") ? [searchParams.get("color")!] : []
   );
@@ -107,6 +111,7 @@ export default function FiltersScreen() {
     const params = new URLSearchParams();
     if (status)           params.set("status",   status);
     if (selectedSpecies)  params.set("species",  selectedSpecies);
+    for (const s of selectedSizes) params.append("size", s);
     if (selectedColors.length) params.set("color", selectedColors[0]);
     if (dateFrom)         params.set("dateFrom", dateFrom);
     if (dateTo)           params.set("dateTo",   dateTo);
@@ -133,7 +138,7 @@ export default function FiltersScreen() {
         <div className="fixed left-0 right-0 flex items-center gap-3 border-b border-slate-100 bg-white px-4 pb-3 pt-4 dark:border-slate-800 dark:bg-[#101a22]">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(backToAllReports, { replace: true })}
             className="flex size-11 shrink-0 items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             aria-label="Cerrar"
           >
@@ -202,7 +207,7 @@ export default function FiltersScreen() {
         {/* Tamaño */}
         <h3 className="text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Tamaño</h3>
         <div className="flex gap-3 px-4 py-2 flex-wrap">
-          {SIZES.map(size => {
+          {PET_SIZES.map(size => {
             const on = selectedSizes.includes(size);
             return (
               <button

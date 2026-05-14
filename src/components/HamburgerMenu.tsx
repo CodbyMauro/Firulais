@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMenu } from "../context/MenuContext";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
+import UserAvatar from "./UserAvatar";
 
 // TODO: reemplazar por el link real de cobro de Mercado Pago
 // Formato esperado: https://mpago.la/... o https://link.mercadopago.com.ar/...
@@ -17,9 +18,9 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { icon: "settings",            label: "Configuración",    path: "/settings" },
-  { icon: "local_hospital",      label: "Centros de Ayuda", path: "/centros" },
-  { icon: "help",                label: "Ayuda y Soporte",  path: "/help" },
-  { icon: "celebration",         label: "Finales Felices",  path: "/finales" },
+  { icon: "local_hospital",      label: "Centros de ayuda", path: "/centros" },
+  { icon: "help",                label: "Ayuda y soporte",  path: "/help" },
+  { icon: "celebration",         label: "Finales felices",  path: "/finales" },
   { icon: "volunteer_activism",  label: "Donar",            external: MP_DONATION_URL },
 ];
 
@@ -28,12 +29,15 @@ export default function HamburgerMenu() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [isPremium, setIsPremium] = useState(false);
+  const [drawerFullName, setDrawerFullName] = useState<string | null>(null);
+  const [drawerAvatarData, setDrawerAvatarData] = useState<string | null>(null);
+  const [drawerAvatarUrl, setDrawerAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !isOpen) return;
     supabase
       .from("profiles")
-      .select("is_premium, premium_until")
+      .select("is_premium, premium_until, full_name, avatar_data, avatar_url")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
@@ -41,8 +45,11 @@ export default function HamburgerMenu() {
         setIsPremium(
           data.is_premium || (data.premium_until && new Date(data.premium_until) > new Date()),
         );
+        setDrawerFullName(data.full_name ?? null);
+        setDrawerAvatarData(data.avatar_data ?? null);
+        setDrawerAvatarUrl(data.avatar_url ?? null);
       });
-  }, [user]);
+  }, [user, isOpen]);
 
   // Cerrar con Escape
   useEffect(() => {
@@ -91,16 +98,25 @@ export default function HamburgerMenu() {
         className={`lg:hidden fixed right-0 z-50 w-72 max-w-[85vw] bg-white dark:bg-slate-800 shadow-2xl dark:shadow-slate-900/50 flex flex-col transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Header del drawer */}
-        <div className="flex items-center justify-between px-5 pt-6 pb-6 border-b border-slate-100 dark:border-slate-700">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full bg-[#2b9dee]/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[28px] text-[#2b9dee]">account_circle</span>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{user?.name ?? "Usuario"}</p>
+        <div className="flex items-center justify-between px-5 pt-6 pb-6 border-b border-slate-100 dark:border-slate-700 gap-2">
+          <button
+            type="button"
+            onClick={() => handleNav("/profile")}
+            className="flex items-center gap-3 min-w-0 flex-1 text-left rounded-xl -m-1 p-1 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors"
+          >
+            <UserAvatar
+              name={drawerFullName ?? user?.name ?? user?.email ?? "Usuario"}
+              avatarData={drawerAvatarData}
+              avatarUrl={drawerAvatarUrl}
+              size={44}
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                {drawerFullName ?? user?.name ?? "Usuario"}
+              </p>
               <p className="text-xs text-slate-400 dark:text-slate-500 truncate max-w-[140px]">{user?.email ?? ""}</p>
             </div>
-          </div>
+          </button>
           <button onClick={closeMenu} className="flex size-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700">
             <span className="material-symbols-outlined text-[20px] text-slate-500 dark:text-slate-400">close</span>
           </button>
@@ -119,7 +135,7 @@ export default function HamburgerMenu() {
                 <span className="material-symbols-outlined text-[20px] text-amber-500">star</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-amber-700 dark:text-amber-400">Hacete Premium</p>
+                <p className="text-sm font-bold text-amber-700 dark:text-amber-400">Hacete premium</p>
                 <p className="text-[11px] text-amber-600 dark:text-amber-500">IA ilimitada para encontrar tu mascota</p>
               </div>
               <span className="material-symbols-outlined text-[18px] text-amber-400 ml-auto">chevron_right</span>
@@ -151,7 +167,7 @@ export default function HamburgerMenu() {
             <div className="w-9 h-9 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px] text-red-500">logout</span>
             </div>
-            <span className="text-sm font-semibold text-red-500">Cerrar Sesión</span>
+            <span className="text-sm font-semibold text-red-500">Cerrar sesión</span>
           </button>
         </div>
       </div>

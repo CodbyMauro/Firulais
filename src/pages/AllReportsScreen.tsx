@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { fetchPetsPage, type Pet, type FetchPetsOptions } from "../lib/petsService";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { fetchPets, matchUrlSpeciesFilter, PET_SIZES, PUBLIC_PET_PAGE_SIZE, type Pet } from "../lib/petsService";
 import { fetchProfilesByIds, type Profile } from "../lib/profileService";
+import { foldAccentsContains } from "../lib/foldAccents";
+import { supabase } from "../lib/supabase";
 import UserAvatar from "../components/UserAvatar";
 
 const timeAgo = (iso: string) => {
@@ -45,8 +47,63 @@ function ActiveFilterChip({ label, onRemove }: { label: string; onRemove: () => 
 
 const SPECIES_LABEL: Record<string, string> = { dog: "Perros", cat: "Gatos", other: "Otros" };
 
+function petWithinReportDateRange(pet: Pet, dateFrom: string, dateTo: string): boolean {
+  const t = new Date(pet.created_at).getTime();
+  if (dateFrom) {
+    const start = new Date(`${dateFrom}T00:00:00`).getTime();
+    if (t < start) return false;
+  }
+  if (dateTo) {
+    const end = new Date(`${dateTo}T23:59:59.999`).getTime();
+    if (t > end) return false;
+  }
+  return true;
+}
+
+/** Igual que HomeScreen: nombre, raza, color y ubicación (insensible a tildes). */
+function matchesHomeSearchText(pet: Pet, query: string): boolean {
+  const q = query.trim();
+  if (!q) return true;
+  return (
+    foldAccentsContains(pet.name, q) ||
+    foldAccentsContains(pet.breed, q) ||
+    foldAccentsContains(pet.color, q) ||
+    foldAccentsContains(pet.size, q) ||
+    foldAccentsContains(pet.location, q)
+  );
+}
+
+const PET_SIZE_SET = new Set<string>(PET_SIZES);
+
+function petMatchesAllReportsFilters(
+  pet: Pet,
+  ctx: {
+    statusParam: string;
+    speciesParam: string;
+    colorParam: string;
+    sizeParams: string[];
+    dateFrom: string;
+    dateTo: string;
+    debouncedSearch: string;
+  },
+): boolean {
+  const { statusParam, speciesParam, colorParam, sizeParams, dateFrom, dateTo, debouncedSearch } = ctx;
+  if (statusParam && pet.status !== statusParam) return false;
+  const sp: "" | "dog" | "cat" = speciesParam === "dog" ? "dog" : speciesParam === "cat" ? "cat" : "";
+  if (!matchUrlSpeciesFilter(pet, sp)) return false;
+  if (colorParam.trim() && !foldAccentsContains(pet.color, colorParam.trim())) return false;
+  if (sizeParams.length) {
+    const ps = pet.size?.trim() ?? "";
+    if (!ps || !sizeParams.includes(ps)) return false;
+  }
+  if (!petWithinReportDateRange(pet, dateFrom, dateTo)) return false;
+  if (!matchesHomeSearchText(pet, debouncedSearch)) return false;
+  return true;
+}
+
 export default function AllReportsScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const statusParam  = searchParams.get("status")   ?? "";
@@ -54,13 +111,15 @@ export default function AllReportsScreen() {
   const colorParam   = searchParams.get("color")    ?? "";
   const dateFrom     = searchParams.get("dateFrom") ?? "";
   const dateTo       = searchParams.get("dateTo")   ?? "";
+  /** Estable por URL: si se recrea cada render, `filterCtx` cambia siempre y el efecto que resetea `visibleCount` rompe "Ver más". */
+  const sizeParams = useMemo(() => {
+    return [...searchParams.getAll("size")].filter(s => PET_SIZE_SET.has(s));
+  }, [searchParams.toString()]);
 
   const [search,      setSearch]      = useState("");
-  const [pets,        setPets]        = useState<Pet[]>([]);
-  const [page,        setPage]        = useState(0);
-  const [hasMore,     setHasMore]     = useState(true);
-  const [loading,     setLoading]     = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [cache,       setCache]       = useState<Pet[] | null>(null);
+  const [loading,     setLoading]     = useState(true);
+  const [visibleCount, setVisibleCount] = useState(PUBLIC_PET_PAGE_SIZE);
   const [reporterProfiles, setReporterProfiles] = useState<Record<string, Profile>>({});
   const [layout, setLayout] = useState<"grid" | "list">("grid");
 
@@ -74,53 +133,67 @@ export default function AllReportsScreen() {
   }, [search]);
 
   useEffect(() => {
-    setPets([]);
-    setPage(0);
-    setHasMore(true);
-    load(0, true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusParam, speciesParam, colorParam, dateFrom, dateTo, debouncedSearch]);
+    let cancelled = false;
+    setLoading(true);
+    fetchPets()
+      .then(data => {
+        if (!cancelled) setCache(data);
+      })
+      .catch(() => {
+        if (!cancelled) setCache([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-  const load = async (pageNum: number, reset = false) => {
-    if (reset) setLoading(true);
-    else setLoadingMore(true);
-    try {
-      let days: FetchPetsOptions["days"] = undefined;
-      if (dateFrom) {
-        const diffMs   = Date.now() - new Date(dateFrom).getTime();
-        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-        if      (diffDays <= 1)  days = 1;
-        else if (diffDays <= 3)  days = 3;
-        else if (diffDays <= 7)  days = 7;
-        else                     days = 30;
-      }
+    const ch = supabase
+      .channel("all-reports-pets-list")
+      .on("postgres_changes", { event: "*", schema: "public", table: "pets" }, () => {
+        fetchPets().then(setCache).catch(() => {});
+      })
+      .subscribe();
 
-      const combinedSearch = [colorParam, debouncedSearch].filter(Boolean).join(" ");
-      const opts: FetchPetsOptions = {
-        page:    pageNum,
-        status:  statusParam  ? (statusParam  as "lost" | "found") : undefined,
-        species: speciesParam === "dog" ? "dog" : speciesParam === "cat" ? "cat" : undefined,
-        days,
-        search:  combinedSearch,
-      };
+    return () => {
+      cancelled = true;
+      void supabase.removeChannel(ch);
+    };
+  }, []);
 
-      const { pets: newPets, hasMore: more } = await fetchPetsPage(opts);
-      setPets(prev => reset ? newPets : [...prev, ...newPets]);
-      setHasMore(more);
+  const filterCtx = useMemo(
+    () => ({
+      statusParam,
+      speciesParam,
+      colorParam,
+      sizeParams,
+      dateFrom,
+      dateTo,
+      debouncedSearch,
+    }),
+    [statusParam, speciesParam, colorParam, sizeParams, dateFrom, dateTo, debouncedSearch],
+  );
 
-      const ids = [...new Set(newPets.map(p => p.reporter_id).filter(Boolean))] as string[];
-      if (ids.length) {
-        fetchProfilesByIds(ids).then(profiles =>
-          setReporterProfiles(prev => ({ ...prev, ...profiles }))
-        );
-      }
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
+  const filtered = useMemo(() => {
+    if (!cache) return [];
+    return cache.filter(p => petMatchesAllReportsFilters(p, filterCtx));
+  }, [cache, filterCtx]);
 
-  const loadMore = () => { const next = page + 1; setPage(next); load(next); };
+  useEffect(() => {
+    setVisibleCount(PUBLIC_PET_PAGE_SIZE);
+  }, [filterCtx]);
+
+  const pets = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const hasMore = visibleCount < filtered.length;
+  const totalFiltered = filtered.length;
+
+  const loadMore = () => setVisibleCount(c => c + PUBLIC_PET_PAGE_SIZE);
+
+  useEffect(() => {
+    const ids = [...new Set(pets.map(p => p.reporter_id).filter(Boolean))] as string[];
+    if (!ids.length) return;
+    fetchProfilesByIds(ids).then(profiles =>
+      setReporterProfiles(prev => ({ ...prev, ...profiles })),
+    );
+  }, [pets]);
 
   const removeParam = (key: string) => {
     const next = new URLSearchParams(searchParams);
@@ -137,17 +210,19 @@ export default function AllReportsScreen() {
   const activeFilterChips = [
     speciesParam && { key: "species",  label: SPECIES_LABEL[speciesParam] ?? speciesParam },
     colorParam   && { key: "color",    label: colorParam },
+    sizeParams.length > 0 && { key: "size", label: `Tamaño: ${sizeParams.join(" · ")}` },
     dateFrom     && { key: "dateFrom", label: `Desde ${dateFrom}` },
     dateTo       && { key: "dateTo",   label: `Hasta ${dateTo}` },
   ].filter(Boolean) as { key: string; label: string }[];
 
-  const totalActiveFilters = activeFilterChips.length + (statusParam ? 1 : 0);
+  const totalActiveFilters =
+    activeFilterChips.length + (statusParam ? 1 : 0) + (debouncedSearch.trim() ? 1 : 0);
 
   return (
-    <div className="flex min-h-screen w-full min-w-0 max-w-[430px] flex-col overflow-x-hidden bg-[#f6f7f8] font-display text-slate-900 dark:bg-[#101a22] dark:text-slate-100 mx-auto pb-[calc(3rem+env(safe-area-inset-bottom,0px))] lg:max-w-2xl lg:pb-8">
+    <div className="firulais-all-reports-route relative mx-auto flex w-full min-w-0 max-w-[430px] flex-col overflow-hidden bg-[#f6f7f8] font-display text-slate-900 dark:bg-[#101a22] dark:text-slate-100 lg:max-w-2xl">
 
-      {/* Header sticky */}
-      <div className="sticky top-0 z-20 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
+      {/* Barra superior fija: el scroll va solo en el feed (evita overscroll que tapa header en Android). */}
+      <div className="shrink-0 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
 
         {/* Búsqueda */}
         <div className="flex min-w-0 items-center gap-2 px-4 pt-3 pb-2 sm:gap-3">
@@ -186,7 +261,12 @@ export default function AllReportsScreen() {
 
             {/* Botón filtros */}
             <button
-              onClick={() => navigate(`/filters?${searchParams.toString()}`)}
+              onClick={() =>
+                navigate(`/filters?${searchParams.toString()}`, {
+                  replace: true,
+                  state: { backToAllReports: `${location.pathname}${location.search}` },
+                })
+              }
               className={`relative flex size-9 items-center justify-center rounded-xl cursor-pointer transition-colors ${
                 totalActiveFilters > 0
                   ? "bg-[#2b9dee]/10 dark:bg-[#2b9dee]/20"
@@ -252,12 +332,15 @@ export default function AllReportsScreen() {
         )}
       </div>
 
+      {/* Feed: única zona con scroll vertical (mismo patrón que HomeScreen). */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain bg-[#f6f7f8] dark:bg-[#101a22] pb-mobile-tab lg:pb-8">
+
       {/* Contador */}
       <div className="flex min-w-0 items-center justify-between gap-2 px-4 pt-3 pb-2">
         <p className="min-w-0 text-xs font-semibold text-slate-500 dark:text-slate-400">
           {loading
             ? "Buscando..."
-            : <><span className="text-slate-900 dark:text-white font-extrabold">{pets.length}{hasMore ? "+" : ""}</span> reporte{pets.length !== 1 ? "s" : ""}</>
+            : <><span className="text-slate-900 dark:text-white font-extrabold">{totalFiltered}{hasMore ? "+" : ""}</span> reporte{totalFiltered !== 1 ? "s" : ""}</>
           }
         </p>
         <div className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-slate-400">
@@ -289,9 +372,14 @@ export default function AllReportsScreen() {
                 <p className="text-[15px] font-bold text-slate-700 dark:text-slate-300">Sin resultados</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Probá con otros filtros o términos</p>
               </div>
-              {activeFilterChips.length > 0 && (
+              {(activeFilterChips.length > 0 || debouncedSearch.trim()) && (
                 <button
-                  onClick={() => setSearchParams(new URLSearchParams())}
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setDebouncedSearch("");
+                    setSearchParams(new URLSearchParams(), { replace: true });
+                  }}
                   className="mt-1 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#2b9dee] cursor-pointer"
                 >
                   Limpiar filtros
@@ -348,9 +436,14 @@ export default function AllReportsScreen() {
                 <p className="text-[15px] font-bold text-slate-700 dark:text-slate-300">Sin resultados</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Probá con otros filtros o términos</p>
               </div>
-              {activeFilterChips.length > 0 && (
+              {(activeFilterChips.length > 0 || debouncedSearch.trim()) && (
                 <button
-                  onClick={() => setSearchParams(new URLSearchParams())}
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setDebouncedSearch("");
+                    setSearchParams(new URLSearchParams(), { replace: true });
+                  }}
                   className="mt-1 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#2b9dee] cursor-pointer"
                 >
                   Limpiar filtros
@@ -428,22 +521,16 @@ export default function AllReportsScreen() {
         </div>
       )}
 
-      {/* Load more */}
-      {!loading && hasMore && (
+      {/* Load more (solo si ya hay resultados; evita "Ver más" con lista vacía) */}
+      {!loading && pets.length > 0 && hasMore && (
         <div className="px-4 mt-4">
           <button
+            type="button"
             onClick={loadMore}
-            disabled={loadingMore}
-            className="w-full h-12 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50"
+            className="w-full h-12 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-2 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50"
           >
-            {loadingMore
-              ? <svg className="animate-spin h-4 w-4 text-[#2b9dee]" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg>
-              : <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
-            }
-            {loadingMore ? "Cargando..." : "Ver más reportes"}
+            <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
+            Ver más reportes
           </button>
         </div>
       )}
@@ -453,6 +540,7 @@ export default function AllReportsScreen() {
           — Eso es todo —
         </p>
       )}
+      </div>
     </div>
   );
 }

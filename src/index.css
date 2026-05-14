@@ -153,6 +153,44 @@ html.native-app .firulais-home-route {
   overflow: hidden;
 }
 
+/* Ver todos los reportes: mismo encaje que Home (scroll solo en el feed). */
+html:not(.native-app) .firulais-all-reports-route {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+}
+html.native-app .firulais-all-reports-route {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Ayuda y soporte: scroll interno + hueco sobre tab bar (mismo patrón que Home / todos los reportes). */
+html:not(.native-app) .firulais-help-route {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+}
+html.native-app .firulais-help-route {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Tienda y Premium: scroll interno + hueco inferior (tab bar / safe area). */
+html:not(.native-app) .firulais-store-route,
+html:not(.native-app) .firulais-premium-route {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+}
+html.native-app .firulais-store-route,
+html.native-app .firulais-premium-route {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* Leaflet popup — estilo moderno sin padding/borde por defecto */
 .firulais-popup .leaflet-popup-content-wrapper {
   padding: 0;

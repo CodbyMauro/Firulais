@@ -28,6 +28,7 @@ export default function HomeScreen() {
         foldAccentsContains(p.name, q) ||
         foldAccentsContains(p.breed, q) ||
         foldAccentsContains(p.color, q) ||
+        foldAccentsContains(p.size, q) ||
         foldAccentsContains(p.location, q)
       );
     })
