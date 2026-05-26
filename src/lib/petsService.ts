@@ -26,6 +26,7 @@ export interface Pet {
   reporter_name: string | null;
   created_at: string;
   active_until: string | null;
+  reunited_at: string | null;
 }
 
 export async function fetchPets(): Promise<Pet[]> {
@@ -33,9 +34,39 @@ export async function fetchPets(): Promise<Pet[]> {
     .from("pets")
     .select("*")
     .gt("active_until", new Date().toISOString())
+    .is("reunited_at", null)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data as Pet[];
+}
+
+export async function fetchReunitedPets(options: { days?: number; limit?: number } = {}): Promise<Pet[]> {
+  const { days, limit = 20 } = options;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query: any = supabase
+    .from("pets")
+    .select("*")
+    .not("reunited_at", "is", null)
+    .order("reunited_at", { ascending: false });
+
+  if (days) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    query = query.gte("reunited_at", since);
+  }
+  query = query.limit(limit);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data as Pet[];
+}
+
+export async function countReunitedPets(): Promise<number> {
+  const { count, error } = await supabase
+    .from("pets")
+    .select("id", { count: "exact", head: true })
+    .not("reunited_at", "is", null);
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export const PUBLIC_PET_PAGE_SIZE = 10;
@@ -88,7 +119,8 @@ export async function fetchPetsPage(options: FetchPetsOptions): Promise<{ pets: 
     .select("*")
     .order("created_at", { ascending: false })
     .range(from, to)
-    .gt("active_until", new Date().toISOString());
+    .gt("active_until", new Date().toISOString())
+    .is("reunited_at", null);
 
   if (status) query = query.eq("status", status);
   if (species === "cat") {
@@ -162,6 +194,7 @@ export interface CreatePetInput {
   status: "lost" | "found";
   breed: string;
   age: string;
+  size: string;
   color: string;
   description: string;
   location: string;
@@ -182,9 +215,19 @@ export async function reactivatePet(id: string): Promise<void> {
   const activeUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
   const { error } = await supabase
     .from("pets")
-    .update({ active_until: activeUntil })
+    .update({ active_until: activeUntil, reunited_at: null })
     .eq("id", id);
   if (error) throw error;
+}
+
+export async function markPetReunited(id: string): Promise<string> {
+  const reunitedAt = new Date().toISOString();
+  const { error } = await supabase
+    .from("pets")
+    .update({ reunited_at: reunitedAt, active_until: null })
+    .eq("id", id);
+  if (error) throw error;
+  return reunitedAt;
 }
 
 export async function fetchMyPets(userId: string): Promise<Pet[]> {

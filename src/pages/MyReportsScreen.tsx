@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { fetchMyPets, deletePet, reactivatePet, type Pet } from "../lib/petsService";
+import { fetchMyPets, deletePet, reactivatePet, markPetReunited, type Pet } from "../lib/petsService";
 import { fetchProfile, type Profile } from "../lib/profileService";
 import UserAvatar from "../components/UserAvatar";
 import BottomNav from "../components/BottomNav";
+
+type ReportCardState = "active" | "inactive" | "reunited";
 
 export default function MyReportsScreen() {
   const navigate = useNavigate();
@@ -14,7 +16,9 @@ export default function MyReportsScreen() {
   const [myProfile, setMyProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [reuniteId, setReuniteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isReuniting, setIsReuniting] = useState(false);
   const [reactivatingId, setReactivatingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,8 +53,12 @@ export default function MyReportsScreen() {
   };
 
   const petToDelete = pets.find((p) => p.id === confirmId);
+  const petToReunite = pets.find((p) => p.id === reuniteId);
+
+  const isReunited = (pet: Pet): boolean => Boolean(pet.reunited_at);
 
   const isActive = (pet: Pet): boolean => {
+    if (isReunited(pet)) return false;
     if (!pet.active_until) return false;
     return new Date(pet.active_until).getTime() > Date.now();
   };
@@ -66,7 +74,7 @@ export default function MyReportsScreen() {
       await reactivatePet(id);
       const activeUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       setPets((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, active_until: activeUntil } : p))
+        prev.map((p) => (p.id === id ? { ...p, active_until: activeUntil, reunited_at: null } : p))
       );
     } catch {
       alert("No se pudo reactivar el reporte. Intentá de nuevo.");
@@ -75,14 +83,38 @@ export default function MyReportsScreen() {
     }
   };
 
-  const renderPetCard = (pet: Pet, active: boolean) => {
+  const handleMarkReunited = async () => {
+    if (!reuniteId) return;
+    setIsReuniting(true);
+    try {
+      const reunitedAt = await markPetReunited(reuniteId);
+      setPets((prev) =>
+        prev.map((p) => (p.id === reuniteId ? { ...p, reunited_at: reunitedAt, active_until: null } : p))
+      );
+    } catch {
+      alert("No se pudo marcar como reunida. Intentá de nuevo.");
+    } finally {
+      setIsReuniting(false);
+      setReuniteId(null);
+    }
+  };
+
+  const renderPetCard = (pet: Pet, state: ReportCardState) => {
+    const active = state === "active";
+    const reunited = state === "reunited";
     const days = daysRemaining(pet.active_until);
     const nearExpiry = active && days <= 3;
+    const statusClass = reunited
+      ? "bg-emerald-100 text-emerald-700"
+      : pet.status === "lost"
+        ? "bg-red-100 text-red-600"
+        : "bg-amber-100 text-amber-700";
+    const statusLabel = reunited ? "Reunida" : pet.status === "lost" ? "Buscada" : "Perdida";
 
     return (
       <div
         key={pet.id}
-        className={`shrink-0 bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm dark:shadow-slate-900/50 ${!active ? "opacity-60" : ""}`}
+        className={`shrink-0 bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm dark:shadow-slate-900/50 ${state === "inactive" ? "opacity-60" : ""}`}
       >
         <div
           className="flex items-start gap-3 p-3 cursor-pointer"
@@ -98,9 +130,9 @@ export default function MyReportsScreen() {
           </div>
           <div className="min-w-0 flex-1 flex flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              {active ? (
-                <span className={`inline-flex shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full leading-normal ${pet.status === "lost" ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
-                  {pet.status === "lost" ? "Perdido" : "Encontrado"}
+              {state !== "inactive" ? (
+                <span className={`inline-flex shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full leading-normal ${statusClass}`}>
+                  {statusLabel}
                 </span>
               ) : (
                 <span className="inline-flex shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full leading-normal bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
@@ -129,6 +161,11 @@ export default function MyReportsScreen() {
                 Activa · vence en {days} día{days !== 1 ? "s" : ""}
               </p>
             )}
+            {reunited && pet.reunited_at && (
+              <p className="text-[10px] font-semibold mt-1 text-emerald-600 dark:text-emerald-400">
+                Reunida {formatDate(pet.reunited_at)}
+              </p>
+            )}
           </div>
         </div>
         <div className="border-t border-slate-100 dark:border-slate-700 flex">
@@ -140,15 +177,19 @@ export default function MyReportsScreen() {
             Ver detalle
           </button>
           <div className="w-px bg-slate-100 dark:bg-slate-700" />
-          {active ? (
-            <button
-              onClick={() => setConfirmId(pet.id)}
-              className="flex-1 py-3 text-xs font-semibold text-red-500 flex items-center justify-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[16px]">delete</span>
-              Eliminar
-            </button>
-          ) : (
+          {active && (
+            <>
+              <button
+                onClick={() => setReuniteId(pet.id)}
+                className="flex-1 py-3 text-xs font-semibold text-emerald-600 flex items-center justify-center gap-1"
+              >
+                <span className="material-symbols-outlined text-[16px]">verified</span>
+                Reunida
+              </button>
+              <div className="w-px bg-slate-100 dark:bg-slate-700" />
+            </>
+          )}
+          {state === "inactive" && (
             <button
               onClick={() => handleReactivate(pet.id)}
               disabled={reactivatingId === pet.id}
@@ -163,6 +204,15 @@ export default function MyReportsScreen() {
                 <span className="material-symbols-outlined text-[16px]">refresh</span>
               )}
               Reactivar
+            </button>
+          )}
+          {(active || reunited) && (
+            <button
+              onClick={() => setConfirmId(pet.id)}
+              className="flex-1 py-3 text-xs font-semibold text-red-500 flex items-center justify-center gap-1"
+            >
+              <span className="material-symbols-outlined text-[16px]">delete</span>
+              Eliminar
             </button>
           )}
         </div>
@@ -205,10 +255,23 @@ export default function MyReportsScreen() {
 
             {(() => {
               const activePets = pets.filter(isActive);
-              const inactivePets = pets.filter((p) => !isActive(p));
+              const reunitedPets = pets.filter(isReunited);
+              const inactivePets = pets.filter((p) => !isActive(p) && !isReunited(p));
               return (
                 <>
-                  {activePets.map((pet) => renderPetCard(pet, true))}
+                  {activePets.map((pet) => renderPetCard(pet, "active"))}
+                  {reunitedPets.length > 0 && (
+                    <>
+                      <div className="flex shrink-0 items-center gap-2 mt-2">
+                        <div className="flex-1 h-px bg-emerald-100 dark:bg-emerald-900/40" />
+                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                          Reunidas
+                        </span>
+                        <div className="flex-1 h-px bg-emerald-100 dark:bg-emerald-900/40" />
+                      </div>
+                      {reunitedPets.map((pet) => renderPetCard(pet, "reunited"))}
+                    </>
+                  )}
                   {inactivePets.length > 0 && (
                     <>
                       <div className="flex shrink-0 items-center gap-2 mt-2">
@@ -218,7 +281,7 @@ export default function MyReportsScreen() {
                         </span>
                         <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
                       </div>
-                      {inactivePets.map((pet) => renderPetCard(pet, false))}
+                      {inactivePets.map((pet) => renderPetCard(pet, "inactive"))}
                     </>
                   )}
                 </>
@@ -239,7 +302,7 @@ export default function MyReportsScreen() {
               </div>
               <h3 className="text-lg font-bold">¿Eliminar reporte?</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                Vas a eliminar el reporte de <span className="font-semibold text-slate-700 dark:text-slate-300">{petToDelete?.status === "lost" ? (petToDelete?.name ?? "esta mascota") : "esta mascota encontrada"}</span>. Esta acción no se puede deshacer.
+                Vas a eliminar el reporte de <span className="font-semibold text-slate-700 dark:text-slate-300">{petToDelete?.status === "lost" ? (petToDelete?.name ?? "esta mascota") : "esta mascota reportada"}</span>. Esta acción no se puede deshacer.
               </p>
             </div>
             <div className="flex gap-3 mt-6">
@@ -264,6 +327,47 @@ export default function MyReportsScreen() {
                   <span className="material-symbols-outlined text-[18px]">delete</span>
                 )}
                 Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {reuniteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/40" onClick={() => !isReuniting && setReuniteId(null)} />
+          <div className="relative bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-xl dark:shadow-slate-900/50">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-[30px] text-emerald-600">verified</span>
+              </div>
+              <h3 className="text-lg font-bold">¿Marcar como reunida?</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                El reporte de <span className="font-semibold text-slate-700 dark:text-slate-300">{petToReunite?.status === "lost" ? (petToReunite?.name ?? "esta mascota") : (petToReunite?.breed ?? "esta mascota")}</span> dejará de aparecer en Home, mapa y reportes públicos.
+              </p>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setReuniteId(null)}
+                disabled={isReuniting}
+                className="flex-1 h-12 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-bold text-sm disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleMarkReunited}
+                disabled={isReuniting}
+                className="flex-1 h-12 rounded-xl bg-emerald-600 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-70"
+              >
+                {isReuniting ? (
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">verified</span>
+                )}
+                Confirmar
               </button>
             </div>
           </div>

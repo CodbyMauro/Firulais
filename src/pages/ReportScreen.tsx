@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { useTheme } from "../context/ThemeContext";
@@ -6,7 +6,7 @@ import L from "leaflet";
 import { Capacitor } from "@capacitor/core";
 import { Geolocation } from "@capacitor/geolocation";
 import { useAuth } from "../context/AuthContext";
-import { createPet, uploadPetImage } from "../lib/petsService";
+import { createPet, uploadPetImage, PET_SIZES } from "../lib/petsService";
 import ImageCropModal from "../components/ImageCropModal";
 
 // ── Leaflet icon fix ──────────────────────────────────────────────────────────
@@ -45,6 +45,16 @@ const BREEDS = [
   ]},
 ];
 
+const BREED_OPTIONS = BREEDS.flatMap((group) => group.items);
+
+function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 const BA: [number, number] = [-34.6037, -58.3816];
 
 // ── Reverse geocode ───────────────────────────────────────────────────────────
@@ -67,6 +77,105 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 function PickerHandler({ onPick }: { onPick: (lat: number, lng: number) => void }) {
   useMapEvents({ click: (e) => onPick(e.latlng.lat, e.latlng.lng) });
   return null;
+}
+
+function BreedAutocomplete({
+  value,
+  onChange,
+  inputClass,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  inputClass: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const suggestions = useMemo(() => {
+    const query = normalizeSearchText(value);
+    const matches = query
+      ? BREED_OPTIONS.filter((breed) => normalizeSearchText(breed).includes(query))
+      : BREED_OPTIONS;
+
+    return matches.slice(0, 8);
+  }, [value]);
+
+  const showSuggestions = isOpen && suggestions.length > 0;
+
+  const selectBreed = (breed: string) => {
+    onChange(breed);
+    setIsOpen(false);
+    setActiveIndex(0);
+  };
+
+  return (
+    <div className="relative">
+      <input
+        className={`${inputClass} w-full pr-10`}
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setIsOpen(true);
+          setActiveIndex(0);
+        }}
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => window.setTimeout(() => setIsOpen(false), 120)}
+        onKeyDown={(e) => {
+          if (!showSuggestions) return;
+
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActiveIndex((current) => (current + 1) % suggestions.length);
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActiveIndex((current) => (current - 1 + suggestions.length) % suggestions.length);
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            selectBreed(suggestions[activeIndex]);
+          } else if (e.key === "Escape") {
+            setIsOpen(false);
+          }
+        }}
+        placeholder="Escribí o seleccioná una raza..."
+        autoComplete="off"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={showSuggestions}
+        aria-controls="breed-suggestions"
+      />
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">
+        search
+      </span>
+
+      {showSuggestions && (
+        <div
+          id="breed-suggestions"
+          role="listbox"
+          className="absolute left-0 right-0 top-[calc(100%+6px)] z-30 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-600 dark:bg-slate-800"
+        >
+          {suggestions.map((breed, index) => (
+            <button
+              key={breed}
+              type="button"
+              role="option"
+              aria-selected={index === activeIndex}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                selectBreed(breed);
+              }}
+              className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                index === activeIndex
+                  ? "bg-[#2b9dee]/10 text-[#1a7bbf] dark:bg-[#2b9dee]/20 dark:text-sky-300"
+                  : "text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700"
+              }`}
+            >
+              {breed}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ── Map Picker Modal ──────────────────────────────────────────────────────────
@@ -202,6 +311,7 @@ export default function ReportScreen() {
   const [name, setName] = useState("");
   const [breed, setBreed] = useState("");
   const [age, setAge] = useState("");
+  const [size, setSize] = useState("");
   const [color, setColor] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -250,8 +360,9 @@ export default function ReportScreen() {
       await createPet({
         name: name.trim() || "Sin nombre",
         status: type,
-        breed: breed || "",
+        breed: breed.trim(),
         age: age.trim(),
+        size,
         color: color || "",
         description: description.trim(),
         location: location.trim(),
@@ -302,15 +413,77 @@ export default function ReportScreen() {
         <form onSubmit={handleSubmit} className="px-4 py-5 flex flex-col gap-5">
 
           {/* Tipo */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700">
-            <div className="grid grid-cols-2">
-              <button type="button" onClick={() => setType("lost")}
-                className={`py-4 text-sm font-bold transition-colors ${type === "lost" ? "bg-red-600 text-white" : "text-slate-500 dark:text-slate-400"}`}>
-                Mascota perdida
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 shadow-sm">
+            <div className="mb-3">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                ¿Qué quieres reportar?
+              </h3>
+              <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                Elegí una opción para adaptar el formulario.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                aria-pressed={type === "lost"}
+                onClick={() => setType("lost")}
+                className={`min-h-[92px] rounded-2xl border p-4 text-left transition-all ${
+                  type === "lost"
+                    ? "border-red-500 bg-red-50 shadow-sm ring-2 ring-red-500/10 dark:bg-red-950/30 dark:border-red-500/70"
+                    : "border-slate-200 bg-slate-50 hover:border-red-200 hover:bg-red-50/60 dark:border-slate-600 dark:bg-slate-700/50 dark:hover:border-red-500/40 dark:hover:bg-red-950/20"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
+                    type === "lost"
+                      ? "bg-red-600 text-white"
+                      : "bg-white text-red-500 dark:bg-slate-800"
+                  }`}>
+                    <span className="material-symbols-outlined block text-[22px] leading-none">
+                      search
+                    </span>
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-extrabold text-slate-900 dark:text-white">
+                      Perdí mi mascota
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-slate-500 dark:text-slate-400">
+                      Publicá un aviso para que te ayuden a encontrarla.
+                    </span>
+                  </span>
+                </div>
               </button>
-              <button type="button" onClick={() => { setType("found"); setName(""); setAge(""); }}
-                className={`py-4 text-sm font-bold transition-colors ${type === "found" ? "bg-emerald-600 text-white" : "text-slate-500 dark:text-slate-400"}`}>
-                Mascota encontrada
+
+              <button
+                type="button"
+                aria-pressed={type === "found"}
+                onClick={() => { setType("found"); setName(""); setAge(""); }}
+                className={`min-h-[92px] rounded-2xl border p-4 text-left transition-all ${
+                  type === "found"
+                    ? "border-emerald-500 bg-emerald-50 shadow-sm ring-2 ring-emerald-500/10 dark:bg-emerald-950/30 dark:border-emerald-500/70"
+                    : "border-slate-200 bg-slate-50 hover:border-emerald-200 hover:bg-emerald-50/60 dark:border-slate-600 dark:bg-slate-700/50 dark:hover:border-emerald-500/40 dark:hover:bg-emerald-950/20"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
+                    type === "found"
+                      ? "bg-emerald-600 text-white"
+                      : "bg-white text-emerald-500 dark:bg-slate-800"
+                  }`}>
+                    <span className="material-symbols-outlined block text-[22px] leading-none">
+                      pets
+                    </span>
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-extrabold text-slate-900 dark:text-white">
+                      Encontré una mascota
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-slate-500 dark:text-slate-400">
+                      Avisá para que su familia pueda contactarte.
+                    </span>
+                  </span>
+                </div>
               </button>
             </div>
           </div>
@@ -359,20 +532,13 @@ export default function ReportScreen() {
 
             <label className="flex flex-col gap-1.5">
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Raza</span>
-              <div className="relative">
-                <select className={selectClass} value={breed} onChange={(e) => setBreed(e.target.value)}>
-                  <option value="">Seleccionar raza...</option>
-                  {BREEDS.map((group) => (
-                    <optgroup key={group.group} label={group.group}>
-                      {group.items.map((b) => <option key={b} value={b}>{b}</option>)}
-                    </optgroup>
-                  ))}
-                </select>
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">expand_more</span>
-              </div>
+              <BreedAutocomplete value={breed} onChange={setBreed} inputClass={inputClass} />
+              <span className="text-[11px] leading-4 text-slate-400 dark:text-slate-500">
+                Podés elegir una sugerencia o escribir una raza nueva.
+              </span>
             </label>
 
-            <div className={`grid gap-3 ${type === "lost" ? "grid-cols-2" : "grid-cols-1"}`}>
+            <div className="grid grid-cols-2 gap-3">
               {type === "lost" && (
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Edad aproximada (años)</span>
@@ -390,6 +556,16 @@ export default function ReportScreen() {
                 </label>
               )}
               <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Tamaño</span>
+                <div className="relative">
+                  <select className={selectClass} value={size} onChange={(e) => setSize(e.target.value)}>
+                    <option value="">Seleccionar...</option>
+                    {PET_SIZES.map((petSize) => <option key={petSize} value={petSize}>{petSize}</option>)}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">expand_more</span>
+                </div>
+              </label>
+              <label className={`flex flex-col gap-1.5 ${type === "lost" ? "col-span-2" : ""}`}>
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Color</span>
                 <div className="relative">
                   <select className={selectClass} value={color} onChange={(e) => setColor(e.target.value)}>

@@ -244,7 +244,7 @@ export default function MapScreen() {
               className: "",
               html: createPinSvg(
                 getPetType(pet.breed),
-                pet.status === "lost" ? "#dc2626" : "#059669"
+                pet.status === "lost" ? "#dc2626" : "#f59e0b"
               ),
               iconSize: [36, 44],
               iconAnchor: [18, 44],
@@ -264,12 +264,12 @@ export default function MapScreen() {
                   {/* Status badge */}
                   <span style={{
                     position: "absolute", top: 8, left: 8,
-                    background: pet.status === "lost" ? "#dc2626" : "#059669",
+                    background: pet.status === "lost" ? "#dc2626" : "#f59e0b",
                     color: "white", fontSize: 9, fontWeight: 800,
                     padding: "3px 8px", borderRadius: 99, textTransform: "uppercase",
                     letterSpacing: "0.05em", boxShadow: "0 1px 4px rgba(0,0,0,.25)",
                   }}>
-                    {pet.status === "lost" ? "Perdido" : "Encontrado"}
+                    {pet.status === "lost" ? "Buscada" : "Perdida"}
                   </span>
                 </div>
 
@@ -320,11 +320,11 @@ export default function MapScreen() {
       >
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-red-600" />
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Perdido</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Buscada</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-600" />
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Encontrado</span>
+          <div className="w-3 h-3 rounded-full bg-amber-500" />
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Perdida</span>
         </div>
       </div>
 
@@ -382,8 +382,8 @@ export default function MapScreen() {
         style={{ height: CAROUSEL_H, paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {nearbyMarkers.length === 0 ? (
-          <div className="pointer-events-auto flex h-full items-center justify-center">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg px-5 py-3 flex items-center gap-2">
+          <div className="pointer-events-auto flex h-full items-center justify-center px-4">
+            <div className="flex w-full max-w-sm items-center gap-2 rounded-2xl bg-white px-5 py-3 shadow-lg dark:bg-slate-800">
               <span className="material-symbols-outlined text-[20px] text-slate-400">pets</span>
               <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                 {userPos ? "Sin mascotas en este radio" : "Activá tu ubicación para ver mascotas cercanas"}
@@ -405,8 +405,8 @@ export default function MapScreen() {
                         <span className="material-symbols-outlined text-[32px] text-slate-300 dark:text-slate-500">pets</span>
                       </div>
                   }
-                  <span className={`absolute top-1.5 left-1.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full text-white ${pet.status === "lost" ? "bg-red-500" : "bg-emerald-500"}`}>
-                    {pet.status === "lost" ? "Perdido" : "Encontrado"}
+                  <span className={`absolute top-1.5 left-1.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full text-white ${pet.status === "lost" ? "bg-red-500" : "bg-amber-500"}`}>
+                    {pet.status === "lost" ? "Buscada" : "Perdida"}
                   </span>
                 </div>
                 <div className="px-2.5 py-2">

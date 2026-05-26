@@ -93,8 +93,8 @@ export default function FiltersScreen() {
   );
 
   const STATUS_OPTIONS = [
-    { label: "Perdido",    value: "lost"  },
-    { label: "Encontrado", value: "found" },
+    { label: "Buscada", value: "lost"  },
+    { label: "Perdida", value: "found" },
   ];
 
   const handleReset = () => {
