@@ -164,9 +164,9 @@ export default function HomeScreen() {
                       <span className="material-symbols-outlined text-[42px] text-slate-300 dark:text-slate-600">pets</span>
                     </div>
                   }
-                  <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide shadow ${pet.status === "lost" ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"
+                  <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide shadow ${pet.status === "lost" ? "bg-rose-500 text-white" : "bg-amber-500 text-white"
                     }`}>
-                    {pet.status === "lost" ? "Perdido" : "Hallado"}
+                    {pet.status === "lost" ? "Buscada" : "Perdida"}
                   </div>
                   <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                     {timeAgo(pet.created_at)}

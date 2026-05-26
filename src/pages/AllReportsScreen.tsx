@@ -16,8 +16,8 @@ const timeAgo = (iso: string) => {
 
 const STATUS_TABS = [
   { value: "",      label: "Todos",        icon: "apps"         },
-  { value: "lost",  label: "Perdidos",     icon: "search"       },
-  { value: "found", label: "Encontrados",  icon: "check_circle" },
+  { value: "lost",  label: "Buscadas",     icon: "search"       },
+  { value: "found", label: "Perdidas",     icon: "pets"         },
 ] as const;
 
 
@@ -402,9 +402,9 @@ export default function AllReportsScreen() {
                     </div>
                 }
                 <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide shadow ${
-                  pet.status === "lost" ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"
+                  pet.status === "lost" ? "bg-rose-500 text-white" : "bg-amber-500 text-white"
                 }`}>
-                  {pet.status === "lost" ? "Perdido" : "Hallado"}
+                  {pet.status === "lost" ? "Buscada" : "Perdida"}
                 </div>
                 <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                   {timeAgo(pet.created_at)}
@@ -467,10 +467,10 @@ export default function AllReportsScreen() {
                     </div>
                 }
                 <div className={`absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide ${
-                  pet.status === "lost" ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"
+                  pet.status === "lost" ? "bg-rose-500 text-white" : "bg-amber-500 text-white"
                 }`}>
                   <div className="w-1 h-1 rounded-full bg-white" />
-                  {pet.status === "lost" ? "Perdido" : "Hallado"}
+                  {pet.status === "lost" ? "Buscada" : "Perdida"}
                 </div>
               </div>
 

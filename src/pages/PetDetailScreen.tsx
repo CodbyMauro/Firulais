@@ -45,7 +45,8 @@ export default function PetDetailScreen() {
     if (pet?.reporter_id) fetchProfile(pet.reporter_id).then(setReporterProfile);
   }, [pet?.reporter_id]);
 
-  const canSearchAI = isOwner && pet?.status === "lost";
+  const isReunited = Boolean(pet?.reunited_at);
+  const canSearchAI = isOwner && pet?.status === "lost" && !isReunited;
 
   useEffect(() => {
     if (!pet?.id || !canSearchAI) return;
@@ -91,7 +92,7 @@ export default function PetDetailScreen() {
 
   const handleShare = async () => {
     if (!pet) return;
-    const status = pet.status === "lost" ? "Perdido" : "Encontrado";
+    const status = pet.reunited_at ? "Reunida" : pet.status === "lost" ? "Buscada" : "Perdida";
     const title = `${pet.name ?? "Mascota"} - ${status}`;
     const text = `${status}: ${pet.name ?? "mascota"} en ${pet.location ?? ""}. ${pet.description ?? ""}`.trim();
     const url = `${window.location.origin}/pet/${pet.id}`;
@@ -141,8 +142,8 @@ export default function PetDetailScreen() {
   );
 
   const isLost = pet.status === "lost";
-  const statusColor = isLost ? "#dc2626" : "#059669";
-  const statusLabel = isLost ? "Perdido" : "Encontrado";
+  const statusColor = isReunited ? "#059669" : isLost ? "#dc2626" : "#f59e0b";
+  const statusLabel = isReunited ? "Reunida" : isLost ? "Buscada" : "Perdida";
 
   const glassBtnStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.2)",
@@ -228,7 +229,7 @@ export default function PetDetailScreen() {
             className="text-white text-[28px] font-black leading-tight mb-2"
             style={{ textShadow: "0 2px 10px rgba(0,0,0,0.35)" }}
           >
-            {isLost ? (pet.name || "Sin nombre") : (pet.breed || "Mascota encontrada")}
+            {isLost ? (pet.name || "Sin nombre") : (pet.breed || "Mascota perdida")}
           </h1>
           <div className="flex items-center gap-1.5 mt-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(255,255,255,0.8)" className="flex-shrink-0">
@@ -240,7 +241,7 @@ export default function PetDetailScreen() {
       </div>
 
       {/* ── Content sheet ── */}
-      <div className={`-mt-6 relative z-10 bg-white dark:bg-slate-800 rounded-t-[28px] flex-1 px-5 lg:pb-8 ${isOwner ? "pb-6" : "pb-28"}`}>
+      <div className={`-mt-6 relative z-10 bg-white dark:bg-slate-800 rounded-t-[28px] flex-1 px-5 lg:pb-8 ${isOwner || isReunited ? "pb-6" : "pb-28"}`}>
 
         {/* pull handle */}
         <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-600 mx-auto mt-3 mb-5" />
@@ -293,7 +294,7 @@ export default function PetDetailScreen() {
             <p className="text-sm font-black text-slate-900 dark:text-white">{pet.reporter_name ?? "Anónimo"}</p>
             <p className="text-xs text-slate-400 dark:text-slate-500">Reportado {formatDate(pet.created_at)}</p>
           </div>
-          {!isOwner && (
+          {!isOwner && !isReunited && (
             <button
               onClick={handleContact}
               className="w-10 h-10 rounded-[14px] flex items-center justify-center flex-shrink-0 bg-[#2b9dee]/10 dark:bg-[#2b9dee]/20"
@@ -554,7 +555,7 @@ export default function PetDetailScreen() {
       </div>
 
       {/* ── Floating CTAs (non-owner) ── */}
-      {!isOwner && (
+      {!isOwner && !isReunited && (
         <div
           className="fixed left-0 right-0 max-w-[430px] lg:max-w-3xl mx-auto z-50 bg-white dark:bg-slate-900 px-5 pt-3"
           style={{
